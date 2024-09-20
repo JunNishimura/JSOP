@@ -39,6 +39,14 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.DOUBLE_QUOTE, l.curChar)
 	case ':':
 		tok = newToken(token.COLON, l.curChar)
+	case '+':
+		if isDigit(l.peekChar()) {
+			l.readChar()
+			tok.Literal = l.readNumber()
+			tok.Type = token.INT
+		} else {
+			tok = newToken(token.PLUS, l.curChar)
+		}
 	case '-':
 		if isDigit(l.peekChar()) {
 			l.readChar()
