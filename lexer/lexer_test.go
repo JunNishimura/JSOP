@@ -80,6 +80,158 @@ func TestSingleProgram(t *testing.T) {
 				{Type: token.EOF, Literal: ""},
 			},
 		},
+		{
+			name: "mathematical operation: addition",
+			input: `
+				{
+					"command": {
+						"symbol": "+",
+						"args": [1, 2]
+					}
+				}`,
+			expected: []token.Token{
+				{Type: token.LBRACE, Literal: "{"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COMMAND, Literal: "command"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.LBRACE, Literal: "{"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.SYMBOL, Literal: "symbol"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.PLUS, Literal: "+"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COMMA, Literal: ","},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.ARGS, Literal: "args"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.LBRACKET, Literal: "["},
+				{Type: token.INT, Literal: "1"},
+				{Type: token.COMMA, Literal: ","},
+				{Type: token.INT, Literal: "2"},
+				{Type: token.RBRACKET, Literal: "]"},
+				{Type: token.RBRACE, Literal: "}"},
+				{Type: token.RBRACE, Literal: "}"},
+				{Type: token.EOF, Literal: ""},
+			},
+		},
+		{
+			name: "mathematical operation: subtraction",
+			input: `
+				{
+					"command": {
+						"symbol": "-",
+						"args": [1, 2]
+					}
+				}`,
+			expected: []token.Token{
+				{Type: token.LBRACE, Literal: "{"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COMMAND, Literal: "command"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.LBRACE, Literal: "{"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.SYMBOL, Literal: "symbol"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.MINUS, Literal: "-"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COMMA, Literal: ","},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.ARGS, Literal: "args"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.LBRACKET, Literal: "["},
+				{Type: token.INT, Literal: "1"},
+				{Type: token.COMMA, Literal: ","},
+				{Type: token.INT, Literal: "2"},
+				{Type: token.RBRACKET, Literal: "]"},
+				{Type: token.RBRACE, Literal: "}"},
+				{Type: token.RBRACE, Literal: "}"},
+				{Type: token.EOF, Literal: ""},
+			},
+		},
+		{
+			name: "mathematical operation: multiplication",
+			input: `
+				{
+					"command": {
+						"symbol": "*",
+						"args": [1, 2]
+					}
+				}`,
+			expected: []token.Token{
+				{Type: token.LBRACE, Literal: "{"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COMMAND, Literal: "command"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.LBRACE, Literal: "{"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.SYMBOL, Literal: "symbol"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.ASTERISK, Literal: "*"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COMMA, Literal: ","},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.ARGS, Literal: "args"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.LBRACKET, Literal: "["},
+				{Type: token.INT, Literal: "1"},
+				{Type: token.COMMA, Literal: ","},
+				{Type: token.INT, Literal: "2"},
+				{Type: token.RBRACKET, Literal: "]"},
+				{Type: token.RBRACE, Literal: "}"},
+				{Type: token.RBRACE, Literal: "}"},
+				{Type: token.EOF, Literal: ""},
+			},
+		},
+		{
+			name: "mathematical operation: division",
+			input: `
+				{
+					"command": {
+						"symbol": "/",
+						"args": [1, 2]
+					}
+				}`,
+			expected: []token.Token{
+				{Type: token.LBRACE, Literal: "{"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COMMAND, Literal: "command"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.LBRACE, Literal: "{"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.SYMBOL, Literal: "symbol"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.SLASH, Literal: "/"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COMMA, Literal: ","},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.ARGS, Literal: "args"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.LBRACKET, Literal: "["},
+				{Type: token.INT, Literal: "1"},
+				{Type: token.COMMA, Literal: ","},
+				{Type: token.INT, Literal: "2"},
+				{Type: token.RBRACKET, Literal: "]"},
+				{Type: token.RBRACE, Literal: "}"},
+				{Type: token.RBRACE, Literal: "}"},
+				{Type: token.EOF, Literal: ""},
+			},
+		},
 	}
 
 	for _, tt := range tests {

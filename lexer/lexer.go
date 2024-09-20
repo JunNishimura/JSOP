@@ -35,10 +35,16 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.LBRACE, l.curChar)
 	case '}':
 		tok = newToken(token.RBRACE, l.curChar)
+	case '[':
+		tok = newToken(token.LBRACKET, l.curChar)
+	case ']':
+		tok = newToken(token.RBRACKET, l.curChar)
 	case '"':
 		tok = newToken(token.DOUBLE_QUOTE, l.curChar)
 	case ':':
 		tok = newToken(token.COLON, l.curChar)
+	case ',':
+		tok = newToken(token.COMMA, l.curChar)
 	case '+':
 		if isDigit(l.peekChar()) {
 			l.readChar()
@@ -56,6 +62,10 @@ func (l *Lexer) NextToken() token.Token {
 		} else {
 			tok = newToken(token.MINUS, l.curChar)
 		}
+	case '*':
+		tok = newToken(token.ASTERISK, l.curChar)
+	case '/':
+		tok = newToken(token.SLASH, l.curChar)
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
