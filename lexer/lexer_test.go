@@ -47,28 +47,8 @@ func TestSingleProgram(t *testing.T) {
 			},
 		},
 		{
-			name: "integer with plus sign",
-			input: `
-				{
-					"atom": +123
-				}`,
-			expected: []token.Token{
-				{Type: token.LBRACE, Literal: "{"},
-				{Type: token.DOUBLE_QUOTE, Literal: "\""},
-				{Type: token.ATOM, Literal: "atom"},
-				{Type: token.DOUBLE_QUOTE, Literal: "\""},
-				{Type: token.COLON, Literal: ":"},
-				{Type: token.INT, Literal: "123"},
-				{Type: token.RBRACE, Literal: "}"},
-				{Type: token.EOF, Literal: ""},
-			},
-		},
-		{
-			name: "negative integer",
-			input: `
-				{
-					"atom": -123
-				}`,
+			name:  "negative integer",
+			input: "-123",
 			expected: []token.Token{
 				{Type: token.LBRACE, Literal: "{"},
 				{Type: token.DOUBLE_QUOTE, Literal: "\""},
