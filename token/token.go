@@ -28,13 +28,9 @@ const (
 	DOUBLE_QUOTE = "\""
 	COLON        = ":"
 	COMMA        = ","
-
-	// reserved tokens
-	ATOM = "ATOM"
 )
 
 var reservedWords = map[string]TokenType{
-	"atom":    ATOM,
 	"command": COMMAND,
 	"args":    ARGS,
 }

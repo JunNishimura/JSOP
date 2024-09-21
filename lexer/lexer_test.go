@@ -13,70 +13,26 @@ func TestSingleProgram(t *testing.T) {
 		expected []token.Token
 	}{
 		{
-			name: "integer atom",
-			input: `
-				{
-					"atom": 1
-				}`,
+			name:  "1 digit integer",
+			input: "1",
 			expected: []token.Token{
-				{Type: token.LBRACE, Literal: "{"},
-				{Type: token.DOUBLE_QUOTE, Literal: "\""},
-				{Type: token.ATOM, Literal: "atom"},
-				{Type: token.DOUBLE_QUOTE, Literal: "\""},
-				{Type: token.COLON, Literal: ":"},
 				{Type: token.INT, Literal: "1"},
-				{Type: token.RBRACE, Literal: "}"},
 				{Type: token.EOF, Literal: ""},
 			},
 		},
 		{
-			name: "integer more than 1 digit",
-			input: `
-				{
-					"atom": 123
-				}`,
+			name:  "integer more than 1 digit",
+			input: "123",
 			expected: []token.Token{
-				{Type: token.LBRACE, Literal: "{"},
-				{Type: token.DOUBLE_QUOTE, Literal: "\""},
-				{Type: token.ATOM, Literal: "atom"},
-				{Type: token.DOUBLE_QUOTE, Literal: "\""},
-				{Type: token.COLON, Literal: ":"},
 				{Type: token.INT, Literal: "123"},
-				{Type: token.RBRACE, Literal: "}"},
 				{Type: token.EOF, Literal: ""},
 			},
 		},
 		{
-			name: "integer with plus sign",
-			input: `
-				{
-					"atom": +123
-				}`,
+			name:  "negative integer",
+			input: "-123",
 			expected: []token.Token{
-				{Type: token.LBRACE, Literal: "{"},
-				{Type: token.DOUBLE_QUOTE, Literal: "\""},
-				{Type: token.ATOM, Literal: "atom"},
-				{Type: token.DOUBLE_QUOTE, Literal: "\""},
-				{Type: token.COLON, Literal: ":"},
-				{Type: token.INT, Literal: "123"},
-				{Type: token.RBRACE, Literal: "}"},
-				{Type: token.EOF, Literal: ""},
-			},
-		},
-		{
-			name: "negative integer",
-			input: `
-				{
-					"atom": -123
-				}`,
-			expected: []token.Token{
-				{Type: token.LBRACE, Literal: "{"},
-				{Type: token.DOUBLE_QUOTE, Literal: "\""},
-				{Type: token.ATOM, Literal: "atom"},
-				{Type: token.DOUBLE_QUOTE, Literal: "\""},
-				{Type: token.COLON, Literal: ":"},
 				{Type: token.INT, Literal: "-123"},
-				{Type: token.RBRACE, Literal: "}"},
 				{Type: token.EOF, Literal: ""},
 			},
 		},
