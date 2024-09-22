@@ -106,10 +106,3 @@ func (l *Lexer) readString() string {
 	}
 	return l.input[startPos:l.curPos]
 }
-
-func (l *Lexer) peekChar() byte {
-	if l.nextPos >= len(l.input) {
-		return 0
-	}
-	return l.input[l.nextPos]
-}
