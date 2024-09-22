@@ -32,7 +32,8 @@ func TestSingleProgram(t *testing.T) {
 			name:  "negative integer",
 			input: "-123",
 			expected: []token.Token{
-				{Type: token.INT, Literal: "-123"},
+				{Type: token.MINUS, Literal: "-"},
+				{Type: token.INT, Literal: "123"},
 				{Type: token.EOF, Literal: ""},
 			},
 		},
