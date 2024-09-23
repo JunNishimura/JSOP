@@ -48,3 +48,35 @@ func (pa *PrefixAtom) String() string {
 
 	return out.String()
 }
+
+type Symbol struct {
+	Token token.Token
+	Value string
+}
+
+func (s *Symbol) TokenLiteral() string { return s.Token.Literal }
+func (s *Symbol) String() string       { return s.Token.Literal }
+
+type CommandObject struct {
+	Token  token.Token
+	Symbol Expression
+	Args   []Expression
+}
+
+func (c *CommandObject) TokenLiteral() string { return c.Token.Literal }
+func (c *CommandObject) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("{\"command\": {\"symbol\": ")
+	out.WriteString(c.Symbol.String())
+	out.WriteString(", \"args\": [")
+	for i, arg := range c.Args {
+		out.WriteString(arg.String())
+		if i != len(c.Args)-1 {
+			out.WriteString(", ")
+		}
+	}
+	out.WriteString("]}}")
+
+	return out.String()
+}
