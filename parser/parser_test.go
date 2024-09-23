@@ -114,7 +114,7 @@ func TestCommand(t *testing.T) {
 		expected *ast.CommandObject
 	}{
 		{
-			name: "+ command",
+			name: "addition command",
 			input: `
 				{
 					"command": {
@@ -127,6 +127,87 @@ func TestCommand(t *testing.T) {
 				Symbol: &ast.Symbol{
 					Token: token.Token{Type: token.PLUS, Literal: "+"},
 					Value: "+",
+				},
+				Args: []ast.Expression{
+					&ast.IntegerLiteral{
+						Token: token.Token{Type: token.INT, Literal: "1"},
+						Value: 1,
+					},
+					&ast.IntegerLiteral{
+						Token: token.Token{Type: token.INT, Literal: "2"},
+						Value: 2,
+					},
+				},
+			},
+		},
+		{
+			name: "subtraction command",
+			input: `
+				{
+					"command": {
+						"symbol": "-",
+						"args": [1, 2]
+					}
+				}`,
+			expected: &ast.CommandObject{
+				Token: token.Token{Type: token.COMMAND, Literal: "command"},
+				Symbol: &ast.Symbol{
+					Token: token.Token{Type: token.MINUS, Literal: "-"},
+					Value: "-",
+				},
+				Args: []ast.Expression{
+					&ast.IntegerLiteral{
+						Token: token.Token{Type: token.INT, Literal: "1"},
+						Value: 1,
+					},
+					&ast.IntegerLiteral{
+						Token: token.Token{Type: token.INT, Literal: "2"},
+						Value: 2,
+					},
+				},
+			},
+		},
+		{
+			name: "multiplication command",
+			input: `
+				{
+					"command": {
+						"symbol": "*",
+						"args": [1, 2]
+					}
+				}`,
+			expected: &ast.CommandObject{
+				Token: token.Token{Type: token.COMMAND, Literal: "command"},
+				Symbol: &ast.Symbol{
+					Token: token.Token{Type: token.ASTERISK, Literal: "*"},
+					Value: "*",
+				},
+				Args: []ast.Expression{
+					&ast.IntegerLiteral{
+						Token: token.Token{Type: token.INT, Literal: "1"},
+						Value: 1,
+					},
+					&ast.IntegerLiteral{
+						Token: token.Token{Type: token.INT, Literal: "2"},
+						Value: 2,
+					},
+				},
+			},
+		},
+		{
+			name: "division command",
+			input: `
+				{
+					"command": {
+						"symbol": "/",
+						"args": [1, 2]
+					}
+				}`,
+			expected: &ast.CommandObject{
+				Token: token.Token{Type: token.COMMAND, Literal: "command"},
+				Symbol: &ast.Symbol{
+					Token: token.Token{Type: token.SLASH, Literal: "/"},
+					Value: "/",
 				},
 				Args: []ast.Expression{
 					&ast.IntegerLiteral{
