@@ -15,6 +15,14 @@ type Program struct {
 	Expressions []Expression
 }
 
+func (p *Program) TokenLiteral() string {
+	if len(p.Expressions) > 0 {
+		return p.Expressions[0].TokenLiteral()
+	} else {
+		return ""
+	}
+}
+
 func (p *Program) String() string {
 	var out bytes.Buffer
 
@@ -59,7 +67,7 @@ func (s *Symbol) String() string       { return s.Token.Literal }
 
 type CommandObject struct {
 	Token  token.Token
-	Symbol Expression
+	Symbol *Symbol
 	Args   []Expression
 }
 
