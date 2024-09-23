@@ -67,7 +67,7 @@ func (s *Symbol) String() string       { return s.Token.Literal }
 
 type CommandObject struct {
 	Token  token.Token
-	Symbol Expression
+	Symbol *Symbol
 	Args   []Expression
 }
 
