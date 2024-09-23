@@ -15,6 +15,14 @@ type Program struct {
 	Expressions []Expression
 }
 
+func (p *Program) TokenLiteral() string {
+	if len(p.Expressions) > 0 {
+		return p.Expressions[0].TokenLiteral()
+	} else {
+		return ""
+	}
+}
+
 func (p *Program) String() string {
 	var out bytes.Buffer
 
