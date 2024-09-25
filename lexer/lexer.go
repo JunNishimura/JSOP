@@ -46,13 +46,46 @@ func (l *Lexer) NextToken() token.Token {
 	case ',':
 		tok = newToken(token.COMMA, l.curChar)
 	case '+':
-		tok = newToken(token.PLUS, l.curChar)
+		tok = newToken(token.SYMBOL, l.curChar)
 	case '-':
-		tok = newToken(token.MINUS, l.curChar)
+		if isDigit(l.peekChar()) {
+			tok = newToken(token.MINUS, l.curChar)
+		} else {
+			tok = newToken(token.SYMBOL, l.curChar)
+		}
 	case '*':
-		tok = newToken(token.ASTERISK, l.curChar)
+		tok = newToken(token.SYMBOL, l.curChar)
 	case '/':
-		tok = newToken(token.SLASH, l.curChar)
+		tok = newToken(token.SYMBOL, l.curChar)
+	case '=':
+		tok = newToken(token.SYMBOL, l.curChar)
+	case '!':
+		if l.peekChar() == '=' {
+			ch := l.curChar
+			l.readChar()
+			literal := string(ch) + string(l.curChar)
+			tok = token.Token{Type: token.SYMBOL, Literal: literal}
+		} else {
+			tok = newToken(token.EXCLAM, l.curChar)
+		}
+	case '<':
+		if l.peekChar() == '=' {
+			ch := l.curChar
+			l.readChar()
+			literal := string(ch) + string(l.curChar)
+			tok = token.Token{Type: token.SYMBOL, Literal: literal}
+		} else {
+			tok = newToken(token.SYMBOL, l.curChar)
+		}
+	case '>':
+		if l.peekChar() == '=' {
+			ch := l.curChar
+			l.readChar()
+			literal := string(ch) + string(l.curChar)
+			tok = token.Token{Type: token.SYMBOL, Literal: literal}
+		} else {
+			tok = newToken(token.SYMBOL, l.curChar)
+		}
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
@@ -105,4 +138,11 @@ func (l *Lexer) readString() string {
 		l.readChar()
 	}
 	return l.input[startPos:l.curPos]
+}
+
+func (l *Lexer) peekChar() byte {
+	if l.nextPos >= len(l.input) {
+		return 0
+	}
+	return l.input[l.nextPos]
 }
