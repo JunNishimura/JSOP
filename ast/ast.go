@@ -41,6 +41,14 @@ type IntegerLiteral struct {
 func (il *IntegerLiteral) TokenLiteral() string { return il.Token.Literal }
 func (il *IntegerLiteral) String() string       { return il.Token.Literal }
 
+type Boolean struct {
+	Token token.Token
+	Value bool
+}
+
+func (b *Boolean) TokenLiteral() string { return b.Token.Literal }
+func (b *Boolean) String() string       { return b.Token.Literal }
+
 type PrefixAtom struct {
 	Token    token.Token
 	Operator string
@@ -67,7 +75,7 @@ func (s *Symbol) String() string       { return s.Token.Literal }
 
 type CommandObject struct {
 	Token  token.Token
-	Symbol *Symbol
+	Symbol Expression
 	Args   []Expression
 }
 
@@ -85,6 +93,30 @@ func (c *CommandObject) String() string {
 		}
 	}
 	out.WriteString("]}}")
+
+	return out.String()
+}
+
+type IfExpression struct {
+	Token       token.Token
+	Condition   Expression
+	Consequence Expression
+	Alternative Expression
+}
+
+func (ie *IfExpression) TokenLiteral() string { return ie.Token.Literal }
+func (ie *IfExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("{\"if\": {\"cond\": ")
+	out.WriteString(ie.Condition.String())
+	out.WriteString(", \"conseq\": ")
+	out.WriteString(ie.Consequence.String())
+	if ie.Alternative != nil {
+		out.WriteString(", \"alt\": ")
+		out.WriteString(ie.Alternative.String())
+	}
+	out.WriteString("}}")
 
 	return out.String()
 }
