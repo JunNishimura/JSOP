@@ -7,12 +7,19 @@ import (
 	"github.com/JunNishimura/jsop/object"
 )
 
+var (
+	True  = &object.Boolean{Value: true}
+	False = &object.Boolean{Value: false}
+)
+
 func Eval(exp ast.Expression) object.Object {
 	switch expt := exp.(type) {
 	case *ast.Program:
 		return evalProgram(expt)
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: expt.Value}
+	case *ast.Boolean:
+		return nativeBoolToBooleanObject(expt.Value)
 	case *ast.PrefixAtom:
 		right := Eval(expt.Right)
 		if isError(right) {
@@ -23,6 +30,8 @@ func Eval(exp ast.Expression) object.Object {
 		return evalSymbol(expt)
 	case *ast.CommandObject:
 		return evalCommandObject(expt)
+	case *ast.IfExpression:
+		return evalIfExpression(expt)
 	default:
 		return newError("unknown expression type: %T", exp)
 	}
@@ -49,10 +58,19 @@ func isError(obj object.Object) bool {
 	return false
 }
 
+func nativeBoolToBooleanObject(input bool) *object.Boolean {
+	if input {
+		return True
+	}
+	return False
+}
+
 func evalPrefixAtom(operator string, right object.Object) object.Object {
 	switch operator {
 	case "-":
 		return evalMinusPrefix(right)
+	case "!":
+		return evalExclamationPrefix(right)
 	default:
 		return newError("unknown operator: %s%s", operator, right)
 	}
@@ -65,6 +83,17 @@ func evalMinusPrefix(right object.Object) object.Object {
 
 	value := right.(*object.Integer).Value
 	return &object.Integer{Value: -value}
+}
+
+func evalExclamationPrefix(right object.Object) object.Object {
+	switch right {
+	case True:
+		return False
+	case False:
+		return True
+	default:
+		return newError("unknown operator: !%s", right)
+	}
 }
 
 func evalSymbol(symbol *ast.Symbol) object.Object {
@@ -110,5 +139,31 @@ func applyFunction(function object.Object, args []object.Object) object.Object {
 		return funcType.Fn(args...)
 	default:
 		return newError("not a function: %s", function.Type())
+	}
+}
+
+func evalIfExpression(ie *ast.IfExpression) object.Object {
+	condition := Eval(ie.Condition)
+	if isError(condition) {
+		return condition
+	}
+
+	if isTruthy(condition) {
+		return Eval(ie.Consequence)
+	} else if ie.Alternative != nil {
+		return Eval(ie.Alternative)
+	} else {
+		return False
+	}
+}
+
+func isTruthy(obj object.Object) bool {
+	switch obj {
+	case True:
+		return true
+	case False:
+		return false
+	default:
+		return true
 	}
 }
