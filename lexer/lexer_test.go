@@ -219,7 +219,7 @@ func TestSingleProgram(t *testing.T) {
 			input: `
 				{
 					"command": {
-						"symbol": "=",
+						"symbol": "==",
 						"args": [1, 2]
 					}
 				}`,
@@ -235,7 +235,7 @@ func TestSingleProgram(t *testing.T) {
 				{Type: token.DOUBLE_QUOTE, Literal: "\""},
 				{Type: token.COLON, Literal: ":"},
 				{Type: token.DOUBLE_QUOTE, Literal: "\""},
-				{Type: token.SYMBOL, Literal: "="},
+				{Type: token.SYMBOL, Literal: "=="},
 				{Type: token.DOUBLE_QUOTE, Literal: "\""},
 				{Type: token.COMMA, Literal: ","},
 				{Type: token.DOUBLE_QUOTE, Literal: "\""},

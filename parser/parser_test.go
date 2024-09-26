@@ -298,15 +298,15 @@ func TestCommand(t *testing.T) {
 			input: `
 				{
 					"command": {
-						"symbol": "=",
+						"symbol": "==",
 						"args": [1, 2]
 					}
 				}`,
 			expected: &ast.CommandObject{
 				Token: token.Token{Type: token.COMMAND, Literal: "command"},
 				Symbol: &ast.Symbol{
-					Token: token.Token{Type: token.SYMBOL, Literal: "="},
-					Value: "=",
+					Token: token.Token{Type: token.SYMBOL, Literal: "=="},
+					Value: "==",
 				},
 				Args: []ast.Expression{
 					&ast.IntegerLiteral{
@@ -434,7 +434,7 @@ func TestIfExpression(t *testing.T) {
 					"if": {
 						"cond": {
 							"command": {
-								"symbol": "=",
+								"symbol": "==",
 								"args": [1, 2]
 							}
 						},
@@ -457,8 +457,8 @@ func TestIfExpression(t *testing.T) {
 				Condition: &ast.CommandObject{
 					Token: token.Token{Type: token.COMMAND, Literal: "command"},
 					Symbol: &ast.Symbol{
-						Token: token.Token{Type: token.SYMBOL, Literal: "="},
-						Value: "=",
+						Token: token.Token{Type: token.SYMBOL, Literal: "=="},
+						Value: "==",
 					},
 					Args: []ast.Expression{
 						&ast.IntegerLiteral{

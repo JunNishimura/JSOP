@@ -151,7 +151,7 @@ func TestEvalBooleanExpression(t *testing.T) {
 			input: `
 				{
 					"command": {
-						"symbol": "=",
+						"symbol": "==",
 						"args": [true, true]
 					}
 				}`,
@@ -162,7 +162,7 @@ func TestEvalBooleanExpression(t *testing.T) {
 			input: `
 				{
 					"command": {
-						"symbol": "=",
+						"symbol": "==",
 						"args": [true, false]
 					}
 				}`,

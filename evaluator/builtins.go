@@ -81,7 +81,7 @@ var builtins = map[string]*object.Builtin{
 			return &object.Integer{Value: result}
 		},
 	},
-	"=": {
+	"==": {
 		Fn: func(args ...object.Object) object.Object {
 			if len(args) <= 1 {
 				return newError("number of arguments to '=' must be more than 1, got %d", len(args))
