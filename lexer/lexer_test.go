@@ -481,6 +481,41 @@ func TestSingleProgram(t *testing.T) {
 				{Type: token.EOF, Literal: ""},
 			},
 		},
+		{
+			name: "set expression",
+			input: `
+				{
+					"set": {
+						"var": "$x",
+						"val": 1
+					}
+				}`,
+			expected: []token.Token{
+				{Type: token.LBRACE, Literal: "{"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.SET, Literal: "set"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.LBRACE, Literal: "{"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.VAR, Literal: "var"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.DOLLAR, Literal: "$"},
+				{Type: token.SYMBOL, Literal: "x"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COMMA, Literal: ","},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.VAL, Literal: "val"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.INT, Literal: "1"},
+				{Type: token.RBRACE, Literal: "}"},
+				{Type: token.RBRACE, Literal: "}"},
+				{Type: token.EOF, Literal: ""},
+			},
+		},
 	}
 
 	for _, tt := range tests {

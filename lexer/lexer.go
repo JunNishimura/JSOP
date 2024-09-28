@@ -93,6 +93,8 @@ func (l *Lexer) NextToken() token.Token {
 		} else {
 			tok = newToken(token.SYMBOL, l.curChar)
 		}
+	case '$':
+		tok = newToken(token.DOLLAR, l.curChar)
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
