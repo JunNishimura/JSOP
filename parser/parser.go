@@ -155,23 +155,30 @@ func (p *Parser) parseExpression() (ast.Expression, error) {
 	return p.parseAtom()
 }
 
-func (p *Parser) parseObject() (ast.Expression, error) {
-	defer p.expectCurToken(token.RBRACE)
-
+func (p *Parser) parseObject() (obj ast.Expression, err error) {
 	if err := p.expectCurToken(token.LBRACE); err != nil {
 		return nil, err
 	}
 
 	switch p.peekToken.Type {
 	case token.COMMAND:
-		return p.parseCommand()
+		obj, err = p.parseCommand()
 	case token.IF:
-		return p.parseIfExpression()
+		obj, err = p.parseIfExpression()
 	case token.SET:
-		return p.parseSetExpression()
+		obj, err = p.parseSetExpression()
 	default:
-		return nil, fmt.Errorf("unexpected token type %s", p.curToken.Type)
+		err = fmt.Errorf("unexpected token type %s", p.curToken.Type)
 	}
+	if err != nil {
+		return nil, err
+	}
+
+	if err := p.expectCurToken(token.RBRACE); err != nil {
+		return nil, err
+	}
+
+	return obj, nil
 }
 
 func (p *Parser) parseCommand() (*ast.CommandObject, error) {
