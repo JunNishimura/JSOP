@@ -624,3 +624,139 @@ func TestSetExpression(t *testing.T) {
 		})
 	}
 }
+
+func TestPrograms(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected *ast.Program
+	}{
+		{
+			name: "multiple atoms",
+			input: `
+				[
+					1,
+					true
+				]
+			`,
+			expected: &ast.Program{
+				Expressions: []ast.Expression{
+					&ast.IntegerLiteral{
+						Token: token.Token{Type: token.INT, Literal: "1"},
+						Value: 1,
+					},
+					&ast.Boolean{
+						Token: token.Token{Type: token.TRUE, Literal: "true"},
+						Value: true,
+					},
+				},
+			},
+		},
+		{
+			name: "multiple objects",
+			input: `
+				[
+					{
+						"command": {
+							"symbol": "+",
+							"args": [1, 2]
+						}
+					},
+					{
+						"if": {
+							"cond": true,
+							"conseq": 1
+						}
+					}
+				]
+			`,
+			expected: &ast.Program{
+				Expressions: []ast.Expression{
+					&ast.CommandObject{
+						Token: token.Token{Type: token.COMMAND, Literal: "command"},
+						Symbol: &ast.Symbol{
+							Token: token.Token{Type: token.SYMBOL, Literal: "+"},
+							Value: "+",
+						},
+						Args: []ast.Expression{
+							&ast.IntegerLiteral{
+								Token: token.Token{Type: token.INT, Literal: "1"},
+								Value: 1,
+							},
+							&ast.IntegerLiteral{
+								Token: token.Token{Type: token.INT, Literal: "2"},
+								Value: 2,
+							},
+						},
+					},
+					&ast.IfExpression{
+						Token: token.Token{Type: token.IF, Literal: "if"},
+						Condition: &ast.Boolean{
+							Token: token.Token{Type: token.TRUE, Literal: "true"},
+							Value: true,
+						},
+						Consequence: &ast.IntegerLiteral{
+							Token: token.Token{Type: token.INT, Literal: "1"},
+							Value: 1,
+						},
+						Alternative: nil,
+					},
+				},
+			},
+		},
+		{
+			name: "multiple objects with set expression",
+			input: `
+				[
+					{
+						"set": {
+							"var": "$x",
+							"val": 1
+						}
+					},
+					"$x"
+				]
+			`,
+			expected: &ast.Program{
+				Expressions: []ast.Expression{
+					&ast.SetExpression{
+						Token: token.Token{Type: token.SET, Literal: "set"},
+						Name: &ast.Symbol{
+							Token: token.Token{Type: token.SYMBOL, Literal: "x"},
+							Value: "x",
+						},
+						Value: &ast.IntegerLiteral{
+							Token: token.Token{Type: token.INT, Literal: "1"},
+							Value: 1,
+						},
+					},
+					&ast.Symbol{
+						Token: token.Token{Type: token.SYMBOL, Literal: "x"},
+						Value: "x",
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := New(l)
+
+			program, err := p.ParseProgram()
+			if err != nil {
+				checkParserErrors(t, p)
+			}
+			if len(program.Expressions) != len(tt.expected.Expressions) {
+				t.Fatalf("program.Expressions does not contain %d expressions. got=%d", len(tt.expected.Expressions), len(program.Expressions))
+			}
+
+			for i, exp := range tt.expected.Expressions {
+				if program.Expressions[i].String() != exp.String() {
+					t.Fatalf("exp.String() not %q. got=%q", exp.String(), program.Expressions[i].String())
+				}
+			}
+		})
+	}
+}

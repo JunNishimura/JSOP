@@ -44,7 +44,7 @@ func (p *Parser) Errors() []string {
 	return out
 }
 
-func (p *Parser) handleErr(err error) {
+func (p *Parser) appendError(err error) {
 	p.errors = errors.Join(p.errors, err)
 }
 
@@ -54,21 +54,33 @@ func (p *Parser) nextToken() {
 }
 
 func (p *Parser) ParseProgram() (*ast.Program, error) {
+	if p.curTokenIs(token.EOF) {
+		return nil, nil
+	}
+
+	var err error
 	program := &ast.Program{
 		Expressions: []ast.Expression{},
 	}
 
-	for !p.curTokenIs(token.EOF) {
+	if p.curTokenIs(token.LBRACKET) {
+		program, err = p.parseMultipleExpressions()
+		if err != nil {
+			p.appendError(err)
+		}
+	} else {
 		exp, err := p.parseExpression()
 		if err != nil {
-			// run through the rest of the program to find all errors
-			p.handleErr(err)
+			p.appendError(err)
 		}
 
 		program.Expressions = append(program.Expressions, exp)
 	}
 
-	// return all errors found after parsing the whole program
+	if !p.curTokenIs(token.EOF) {
+		p.appendError(fmt.Errorf("expected EOF, got %s instead", p.curToken.Type))
+	}
+
 	if p.errors != nil {
 		return nil, p.errors
 	}
@@ -76,8 +88,44 @@ func (p *Parser) ParseProgram() (*ast.Program, error) {
 	return program, nil
 }
 
+func (p *Parser) parseMultipleExpressions() (*ast.Program, error) {
+	if err := p.expectCurToken(token.LBRACKET); err != nil {
+		p.appendError(err)
+	}
+
+	program := &ast.Program{
+		Expressions: []ast.Expression{},
+	}
+
+	for {
+		exp, err := p.parseExpression()
+		if err != nil {
+			p.appendError(err)
+		}
+
+		program.Expressions = append(program.Expressions, exp)
+
+		if p.curTokenIs(token.COMMA) {
+			// if the program still has more expressions, skip the comma and continue
+			p.nextToken()
+		} else {
+			// if the program has no more expressions, break the loop
+			if err := p.expectCurToken(token.RBRACKET); err != nil {
+				p.appendError(err)
+			}
+			break
+		}
+	}
+
+	return program, nil
+}
+
 func (p *Parser) curTokenIs(t token.TokenType) bool {
 	return p.curToken.Type == t
+}
+
+func (p *Parser) peekTokenIs(t token.TokenType) bool {
+	return p.peekToken.Type == t
 }
 
 func (p *Parser) expectCurToken(t token.TokenType) error {
@@ -101,8 +149,6 @@ func (p *Parser) expectTokens(tokens ...token.TokenType) error {
 }
 
 func (p *Parser) parseExpression() (ast.Expression, error) {
-	defer p.nextToken()
-
 	if p.curTokenIs(token.LBRACE) {
 		return p.parseObject()
 	}
@@ -110,15 +156,13 @@ func (p *Parser) parseExpression() (ast.Expression, error) {
 }
 
 func (p *Parser) parseObject() (ast.Expression, error) {
+	defer p.expectCurToken(token.RBRACE)
+
 	if err := p.expectCurToken(token.LBRACE); err != nil {
 		return nil, err
 	}
 
-	// parse main key
-	if err := p.expectCurToken(token.DOUBLE_QUOTE); err != nil {
-		return nil, err
-	}
-	switch p.curToken.Type {
+	switch p.peekToken.Type {
 	case token.COMMAND:
 		return p.parseCommand()
 	case token.IF:
@@ -131,6 +175,12 @@ func (p *Parser) parseObject() (ast.Expression, error) {
 }
 
 func (p *Parser) parseCommand() (*ast.CommandObject, error) {
+	if err := p.expectCurToken(token.DOUBLE_QUOTE); err != nil {
+		return nil, err
+	}
+	if !p.curTokenIs(token.COMMAND) {
+		return nil, fmt.Errorf("expected command, got %s instead", p.curToken.Type)
+	}
 	commandToken := p.curToken
 
 	// skip to symbol
@@ -143,20 +193,18 @@ func (p *Parser) parseCommand() (*ast.CommandObject, error) {
 		token.SYMBOLKEY,
 		token.DOUBLE_QUOTE,
 		token.COLON,
-		token.DOUBLE_QUOTE,
 	); err != nil {
 		return nil, err
 	}
 
 	// parse symbol
-	symbol, err := p.parseExpression()
+	symbol, err := p.parseSymbol()
 	if err != nil {
 		return nil, err
 	}
 
 	// skip to args
 	if err := p.expectTokens(
-		token.DOUBLE_QUOTE,
 		token.COMMA,
 		token.DOUBLE_QUOTE,
 		token.ARGS,
@@ -212,6 +260,12 @@ func (p *Parser) parseArgs() ([]ast.Expression, error) {
 }
 
 func (p *Parser) parseIfExpression() (*ast.IfExpression, error) {
+	if err := p.expectCurToken(token.DOUBLE_QUOTE); err != nil {
+		return nil, err
+	}
+	if !p.curTokenIs(token.IF) {
+		return nil, fmt.Errorf("expected if, got %s instead", p.curToken.Type)
+	}
 	ifToken := p.curToken
 
 	// skip to condition
@@ -267,7 +321,7 @@ func (p *Parser) parseIfExpression() (*ast.IfExpression, error) {
 			return nil, err
 		}
 
-		if err := p.expectTokens(token.RBRACE, token.RBRACE); err != nil {
+		if err := p.expectTokens(token.RBRACE); err != nil {
 			return nil, err
 		}
 
@@ -279,7 +333,7 @@ func (p *Parser) parseIfExpression() (*ast.IfExpression, error) {
 		}, nil
 	}
 
-	if err := p.expectTokens(token.RBRACE, token.RBRACE); err != nil {
+	if err := p.expectTokens(token.RBRACE); err != nil {
 		return nil, err
 	}
 
@@ -292,6 +346,12 @@ func (p *Parser) parseIfExpression() (*ast.IfExpression, error) {
 }
 
 func (p *Parser) parseSetExpression() (*ast.SetExpression, error) {
+	if err := p.expectCurToken(token.DOUBLE_QUOTE); err != nil {
+		return nil, err
+	}
+	if !p.curTokenIs(token.SET) {
+		return nil, fmt.Errorf("expected set, got %s instead", p.curToken.Type)
+	}
 	setToken := p.curToken
 
 	// skip to var
@@ -304,8 +364,6 @@ func (p *Parser) parseSetExpression() (*ast.SetExpression, error) {
 		token.VAR,
 		token.DOUBLE_QUOTE,
 		token.COLON,
-		token.DOUBLE_QUOTE,
-		token.DOLLAR,
 	); err != nil {
 		return nil, err
 	}
@@ -322,7 +380,6 @@ func (p *Parser) parseSetExpression() (*ast.SetExpression, error) {
 
 	// skip to val
 	if err := p.expectTokens(
-		token.DOUBLE_QUOTE,
 		token.COMMA,
 		token.DOUBLE_QUOTE,
 		token.VAL,
@@ -338,7 +395,7 @@ func (p *Parser) parseSetExpression() (*ast.SetExpression, error) {
 		return nil, err
 	}
 
-	if err := p.expectTokens(token.RBRACE, token.RBRACE); err != nil {
+	if err := p.expectTokens(token.RBRACE); err != nil {
 		return nil, err
 	}
 
@@ -355,14 +412,14 @@ func (p *Parser) parseAtom() (ast.Expression, error) {
 		return p.parsePrefixAtom()
 	case token.INT:
 		return p.parseIntegerLiteral()
-	case token.TRUE:
-		return &ast.Boolean{Token: p.curToken, Value: true}, nil
-	case token.FALSE:
-		return &ast.Boolean{Token: p.curToken, Value: false}, nil
-	case token.SYMBOL:
-		return &ast.Symbol{Token: p.curToken, Value: p.curToken.Literal}, nil
+	case token.TRUE, token.FALSE:
+		return p.parseBoolean()
+	case token.DOUBLE_QUOTE:
+		return p.parseDoubleQuotedString()
 	default:
-		return nil, fmt.Errorf("unexpected token type %s", p.curToken.Type)
+		err := fmt.Errorf("unexpected token type %s", p.curToken.Type)
+		p.nextToken()
+		return nil, err
 	}
 }
 
@@ -384,10 +441,68 @@ func (p *Parser) parsePrefixAtom() (*ast.PrefixAtom, error) {
 }
 
 func (p *Parser) parseIntegerLiteral() (*ast.IntegerLiteral, error) {
+	if !p.curTokenIs(token.INT) {
+		return nil, fmt.Errorf("expected integer, got %s instead", p.curToken.Type)
+	}
+
 	intValue, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse %q as integer", p.curToken.Literal)
 	}
 
-	return &ast.IntegerLiteral{Token: p.curToken, Value: intValue}, nil
+	result := &ast.IntegerLiteral{Token: p.curToken, Value: intValue}
+
+	p.nextToken()
+
+	return result, nil
+}
+
+func (p *Parser) parseBoolean() (*ast.Boolean, error) {
+	if !p.curTokenIs(token.TRUE) && !p.curTokenIs(token.FALSE) {
+		return nil, fmt.Errorf("expected boolean, got %s instead", p.curToken.Type)
+	}
+
+	var result *ast.Boolean
+
+	switch p.curToken.Type {
+	case token.TRUE:
+		result = &ast.Boolean{Token: p.curToken, Value: true}
+	case token.FALSE:
+		result = &ast.Boolean{Token: p.curToken, Value: false}
+	}
+
+	p.nextToken()
+
+	return result, nil
+}
+
+func (p *Parser) parseDoubleQuotedString() (ast.Expression, error) {
+	if p.peekTokenIs(token.DOLLAR) {
+		return p.parseSymbol()
+	}
+
+	// TOOD: parse string literal
+	return nil, fmt.Errorf("unexpected token type %s", p.curToken.Type)
+}
+
+func (p *Parser) parseSymbol() (*ast.Symbol, error) {
+	if err := p.expectCurToken(token.DOUBLE_QUOTE); err != nil {
+		return nil, err
+	}
+
+	if p.curTokenIs(token.DOLLAR) {
+		p.nextToken()
+	}
+
+	if !p.curTokenIs(token.SYMBOL) {
+		return nil, fmt.Errorf("expected symbol, got %s instead", p.curToken.Type)
+	}
+
+	symbol := &ast.Symbol{Token: p.curToken, Value: p.curToken.Literal}
+
+	if err := p.expectTokens(token.SYMBOL, token.DOUBLE_QUOTE); err != nil {
+		return nil, err
+	}
+
+	return symbol, nil
 }
