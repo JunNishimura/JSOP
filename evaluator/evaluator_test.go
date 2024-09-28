@@ -16,7 +16,9 @@ func testEval(t *testing.T, input string) object.Object {
 		t.Fatalf("error: %s", err)
 	}
 
-	return Eval(program)
+	env := object.NewEnvironment()
+
+	return Eval(program, env)
 }
 
 func testIntegerObject(t *testing.T, obj object.Object, expected int64) {
@@ -338,6 +340,49 @@ func TestIfElseExpression(t *testing.T) {
 						"alt": {
 							"command": {
 								"symbol": "-",
+								"args": [1, 2]
+							}
+						}
+					}
+				}`,
+			expected: 3,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			evaluated := testEval(t, tt.input)
+			testIntegerObject(t, evaluated, tt.expected)
+		})
+	}
+}
+
+func TestSetExpression(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected int64
+	}{
+		{
+			name: "set expression",
+			input: `
+				{
+					"set": {
+						"var": "$x",
+						"val": 10
+					}
+				}`,
+			expected: 10,
+		},
+		{
+			name: "set expression with object",
+			input: `
+				{
+					"set": {
+						"var": "$x",
+						"val": {
+							"command": {
+								"symbol": "+",
 								"args": [1, 2]
 							}
 						}

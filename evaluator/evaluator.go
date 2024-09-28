@@ -12,16 +12,16 @@ var (
 	False = &object.Boolean{Value: false}
 )
 
-func Eval(exp ast.Expression) object.Object {
+func Eval(exp ast.Expression, env *object.Environment) object.Object {
 	switch expt := exp.(type) {
 	case *ast.Program:
-		return evalProgram(expt)
+		return evalProgram(expt, env)
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: expt.Value}
 	case *ast.Boolean:
 		return nativeBoolToBooleanObject(expt.Value)
 	case *ast.PrefixAtom:
-		right := Eval(expt.Right)
+		right := Eval(expt.Right, env)
 		if isError(right) {
 			return right
 		}
@@ -29,19 +29,25 @@ func Eval(exp ast.Expression) object.Object {
 	case *ast.Symbol:
 		return evalSymbol(expt)
 	case *ast.CommandObject:
-		return evalCommandObject(expt)
+		return evalCommandObject(expt, env)
 	case *ast.IfExpression:
-		return evalIfExpression(expt)
+		return evalIfExpression(expt, env)
+	case *ast.SetExpression:
+		value := Eval(expt.Value, env)
+		if isError(value) {
+			return value
+		}
+		return env.Set(expt.Name.Value, value)
 	default:
 		return newError("unknown expression type: %T", exp)
 	}
 }
 
-func evalProgram(program *ast.Program) object.Object {
+func evalProgram(program *ast.Program, env *object.Environment) object.Object {
 	var result object.Object
 
 	for _, exp := range program.Expressions {
-		result = Eval(exp)
+		result = Eval(exp, env)
 	}
 
 	return result
@@ -105,13 +111,13 @@ func evalSymbol(symbol *ast.Symbol) object.Object {
 	return newError("symbol not found: %s", symbol.Value)
 }
 
-func evalCommandObject(command *ast.CommandObject) object.Object {
-	symbol := Eval(command.Symbol)
+func evalCommandObject(command *ast.CommandObject, env *object.Environment) object.Object {
+	symbol := Eval(command.Symbol, env)
 	if isError(symbol) {
 		return symbol
 	}
 
-	args := evalArgs(command.Args)
+	args := evalArgs(command.Args, env)
 	if len(args) == 1 && isError(args[0]) {
 		return args[0]
 	}
@@ -119,11 +125,11 @@ func evalCommandObject(command *ast.CommandObject) object.Object {
 	return applyFunction(symbol, args)
 }
 
-func evalArgs(args []ast.Expression) []object.Object {
+func evalArgs(args []ast.Expression, env *object.Environment) []object.Object {
 	var result []object.Object
 
 	for _, arg := range args {
-		evaluated := Eval(arg)
+		evaluated := Eval(arg, env)
 		if isError(evaluated) {
 			return []object.Object{evaluated}
 		}
@@ -142,16 +148,16 @@ func applyFunction(function object.Object, args []object.Object) object.Object {
 	}
 }
 
-func evalIfExpression(ie *ast.IfExpression) object.Object {
-	condition := Eval(ie.Condition)
+func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Object {
+	condition := Eval(ie.Condition, env)
 	if isError(condition) {
 		return condition
 	}
 
 	if isTruthy(condition) {
-		return Eval(ie.Consequence)
+		return Eval(ie.Consequence, env)
 	} else if ie.Alternative != nil {
-		return Eval(ie.Alternative)
+		return Eval(ie.Alternative, env)
 	} else {
 		return False
 	}
