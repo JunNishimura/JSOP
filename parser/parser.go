@@ -148,6 +148,24 @@ func (p *Parser) expectTokens(tokens ...token.TokenType) error {
 	return nil
 }
 
+func (p *Parser) expectQuotedToken(t token.TokenType) (token.Token, error) {
+	if err := p.expectCurToken(token.DOUBLE_QUOTE); err != nil {
+		return token.Token{}, err
+	}
+
+	if !p.curTokenIs(t) {
+		return token.Token{}, fmt.Errorf("expected %s, got %s instead", t, p.curToken.Type)
+	}
+	ret := p.curToken
+	p.nextToken()
+
+	if err := p.expectCurToken(token.DOUBLE_QUOTE); err != nil {
+		return token.Token{}, err
+	}
+
+	return ret, nil
+}
+
 func (p *Parser) parseExpression() (ast.Expression, error) {
 	if p.curTokenIs(token.LBRACE) {
 		return p.parseObject()
@@ -182,18 +200,13 @@ func (p *Parser) parseObject() (obj ast.Expression, err error) {
 }
 
 func (p *Parser) parseCommand() (*ast.CommandObject, error) {
-	if err := p.expectCurToken(token.DOUBLE_QUOTE); err != nil {
+	commandToken, err := p.expectQuotedToken(token.COMMAND)
+	if err != nil {
 		return nil, err
 	}
-	if !p.curTokenIs(token.COMMAND) {
-		return nil, fmt.Errorf("expected command, got %s instead", p.curToken.Type)
-	}
-	commandToken := p.curToken
 
 	// skip to symbol
 	if err := p.expectTokens(
-		token.COMMAND,
-		token.DOUBLE_QUOTE,
 		token.COLON,
 		token.LBRACE,
 		token.DOUBLE_QUOTE,
@@ -267,18 +280,13 @@ func (p *Parser) parseArgs() ([]ast.Expression, error) {
 }
 
 func (p *Parser) parseIfExpression() (*ast.IfExpression, error) {
-	if err := p.expectCurToken(token.DOUBLE_QUOTE); err != nil {
+	ifToken, err := p.expectQuotedToken(token.IF)
+	if err != nil {
 		return nil, err
 	}
-	if !p.curTokenIs(token.IF) {
-		return nil, fmt.Errorf("expected if, got %s instead", p.curToken.Type)
-	}
-	ifToken := p.curToken
 
 	// skip to condition
 	if err := p.expectTokens(
-		token.IF,
-		token.DOUBLE_QUOTE,
 		token.COLON,
 		token.LBRACE,
 		token.DOUBLE_QUOTE,
@@ -353,18 +361,13 @@ func (p *Parser) parseIfExpression() (*ast.IfExpression, error) {
 }
 
 func (p *Parser) parseSetExpression() (*ast.SetExpression, error) {
-	if err := p.expectCurToken(token.DOUBLE_QUOTE); err != nil {
+	setToken, err := p.expectQuotedToken(token.SET)
+	if err != nil {
 		return nil, err
 	}
-	if !p.curTokenIs(token.SET) {
-		return nil, fmt.Errorf("expected set, got %s instead", p.curToken.Type)
-	}
-	setToken := p.curToken
 
 	// skip to var
 	if err := p.expectTokens(
-		token.SET,
-		token.DOUBLE_QUOTE,
 		token.COLON,
 		token.LBRACE,
 		token.DOUBLE_QUOTE,
