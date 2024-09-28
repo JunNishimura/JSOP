@@ -399,3 +399,61 @@ func TestSetExpression(t *testing.T) {
 		})
 	}
 }
+
+func TestMultipleExpressions(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected int64
+	}{
+		{
+			name: "multiple atoms",
+			input: `
+				[
+					1,
+					2
+				]`,
+			expected: 2,
+		},
+		{
+			name: "multiple commands",
+			input: `
+				[
+					{
+						"command": {
+							"symbol": "+",
+							"args": [1, 2]
+						}
+					},
+					{
+						"command": {
+							"symbol": "-",
+							"args": [1, 2]
+						}
+					}
+				]`,
+			expected: -1,
+		},
+		{
+			name: "multiple commands with set expression",
+			input: `
+				[
+					{
+						"set": {
+							"var": "$x",
+							"val": 10
+						}
+					},
+					"$x"
+				]`,
+			expected: 10,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			evaluated := testEval(t, tt.input)
+			testIntegerObject(t, evaluated, tt.expected)
+		})
+	}
+}
