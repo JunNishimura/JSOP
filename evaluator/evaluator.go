@@ -27,7 +27,7 @@ func Eval(exp ast.Expression, env *object.Environment) object.Object {
 		}
 		return evalPrefixAtom(expt.Operator, right)
 	case *ast.Symbol:
-		return evalSymbol(expt)
+		return evalSymbol(expt, env)
 	case *ast.CommandObject:
 		return evalCommandObject(expt, env)
 	case *ast.IfExpression:
@@ -102,10 +102,15 @@ func evalExclamationPrefix(right object.Object) object.Object {
 	}
 }
 
-func evalSymbol(symbol *ast.Symbol) object.Object {
+func evalSymbol(symbol *ast.Symbol, env *object.Environment) object.Object {
 	builtintFunc, ok := builtins[symbol.Value]
 	if ok {
 		return builtintFunc
+	}
+
+	obj, ok := env.Get(symbol.Value)
+	if ok {
+		return obj
 	}
 
 	return newError("symbol not found: %s", symbol.Value)
