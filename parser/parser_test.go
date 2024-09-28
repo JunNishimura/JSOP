@@ -532,3 +532,95 @@ func TestIfExpression(t *testing.T) {
 		})
 	}
 }
+
+func TestSetExpression(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected *ast.SetExpression
+	}{
+		{
+			name: "set variable",
+			input: `
+				{
+					"set": {
+						"var": "$x",
+						"val": 1
+					}
+				}`,
+			expected: &ast.SetExpression{
+				Token: token.Token{Type: token.SET, Literal: "set"},
+				Name: &ast.Symbol{
+					Token: token.Token{Type: token.SYMBOL, Literal: "x"},
+					Value: "x",
+				},
+				Value: &ast.IntegerLiteral{
+					Token: token.Token{Type: token.INT, Literal: "1"},
+					Value: 1,
+				},
+			},
+		},
+		{
+			name: "set variable with command",
+			input: `
+				{
+					"set": {
+						"var": "$x",
+						"val": {
+							"command": {
+								"symbol": "+",
+								"args": [1, 2]
+							}
+						}
+					}
+				}`,
+			expected: &ast.SetExpression{
+				Token: token.Token{Type: token.SET, Literal: "set"},
+				Name: &ast.Symbol{
+					Token: token.Token{Type: token.SYMBOL, Literal: "x"},
+					Value: "x",
+				},
+				Value: &ast.CommandObject{
+					Token: token.Token{Type: token.COMMAND, Literal: "command"},
+					Symbol: &ast.Symbol{
+						Token: token.Token{Type: token.SYMBOL, Literal: "+"},
+						Value: "+",
+					},
+					Args: []ast.Expression{
+						&ast.IntegerLiteral{
+							Token: token.Token{Type: token.INT, Literal: "1"},
+							Value: 1,
+						},
+						&ast.IntegerLiteral{
+							Token: token.Token{Type: token.INT, Literal: "2"},
+							Value: 2,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := New(l)
+
+			program, err := p.ParseProgram()
+			if err != nil {
+				checkParserErrors(t, p)
+			}
+			if len(program.Expressions) != 1 {
+				t.Fatalf("program.Expressions does not contain 1 expression. got=%d", len(program.Expressions))
+			}
+
+			setExp, ok := program.Expressions[0].(*ast.SetExpression)
+			if !ok {
+				t.Fatalf("exp not *ast.SetExpression. got=%T", program.Expressions[0])
+			}
+			if setExp.String() != tt.expected.String() {
+				t.Fatalf("setExp.String() not %q. got=%q", tt.expected.String(), setExp.String())
+			}
+		})
+	}
+}

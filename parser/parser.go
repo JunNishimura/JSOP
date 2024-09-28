@@ -123,6 +123,8 @@ func (p *Parser) parseObject() (ast.Expression, error) {
 		return p.parseCommand()
 	case token.IF:
 		return p.parseIfExpression()
+	case token.SET:
+		return p.parseSetExpression()
 	default:
 		return nil, fmt.Errorf("unexpected token type %s", p.curToken.Type)
 	}
@@ -286,6 +288,64 @@ func (p *Parser) parseIfExpression() (*ast.IfExpression, error) {
 		Condition:   condition,
 		Consequence: consequence,
 		Alternative: nil,
+	}, nil
+}
+
+func (p *Parser) parseSetExpression() (*ast.SetExpression, error) {
+	setToken := p.curToken
+
+	// skip to var
+	if err := p.expectTokens(
+		token.SET,
+		token.DOUBLE_QUOTE,
+		token.COLON,
+		token.LBRACE,
+		token.DOUBLE_QUOTE,
+		token.VAR,
+		token.DOUBLE_QUOTE,
+		token.COLON,
+		token.DOUBLE_QUOTE,
+		token.DOLLAR,
+	); err != nil {
+		return nil, err
+	}
+
+	// parse var
+	variable, err := p.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+	varName, ok := variable.(*ast.Symbol)
+	if !ok {
+		return nil, fmt.Errorf("expected symbol, got %T", variable)
+	}
+
+	// skip to val
+	if err := p.expectTokens(
+		token.DOUBLE_QUOTE,
+		token.COMMA,
+		token.DOUBLE_QUOTE,
+		token.VAL,
+		token.DOUBLE_QUOTE,
+		token.COLON,
+	); err != nil {
+		return nil, err
+	}
+
+	// parse val
+	value, err := p.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := p.expectTokens(token.RBRACE, token.RBRACE); err != nil {
+		return nil, err
+	}
+
+	return &ast.SetExpression{
+		Token: setToken,
+		Name:  varName,
+		Value: value,
 	}, nil
 }
 
