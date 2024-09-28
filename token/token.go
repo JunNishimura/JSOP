@@ -19,6 +19,9 @@ const (
 	COND      = "COND"
 	CONSEQ    = "CONSEQ"
 	ALT       = "ALT"
+	SET       = "SET"
+	VAR       = "VAR"
+	VAL       = "VAL"
 
 	SYMBOL = "SYMBOL"
 
@@ -35,6 +38,7 @@ const (
 	DOUBLE_QUOTE = "\""
 	COLON        = ":"
 	COMMA        = ","
+	DOLLAR       = "$"
 )
 
 var reservedWords = map[string]TokenType{
@@ -47,6 +51,9 @@ var reservedWords = map[string]TokenType{
 	"alt":     ALT,
 	"true":    TRUE,
 	"false":   FALSE,
+	"set":     SET,
+	"var":     VAR,
+	"val":     VAL,
 }
 
 func LookupStringTokenType(word string) TokenType {
