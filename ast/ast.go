@@ -120,3 +120,22 @@ func (ie *IfExpression) String() string {
 
 	return out.String()
 }
+
+type SetExpression struct {
+	Token token.Token
+	Name  *Symbol
+	Value Expression
+}
+
+func (se *SetExpression) TokenLiteral() string { return se.Token.Literal }
+func (se *SetExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("{\"set\": {\"var\": ")
+	out.WriteString(se.Name.String())
+	out.WriteString(", \"val\": ")
+	out.WriteString(se.Value.String())
+	out.WriteString("}}")
+
+	return out.String()
+}
