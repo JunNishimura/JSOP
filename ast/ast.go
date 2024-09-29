@@ -75,7 +75,7 @@ func (a *Array) String() string {
 type CommandObject struct {
 	Token  token.Token
 	Symbol Expression
-	Args   []Expression
+	Args   Expression
 }
 
 func (c *CommandObject) TokenLiteral() string { return c.Token.Literal }
@@ -84,20 +84,14 @@ func (c *CommandObject) String() string {
 
 	out.WriteString("{\"command\": {\"symbol\": ")
 	out.WriteString(c.Symbol.String())
-	out.WriteString(", \"args\": ")
-	if len(c.Args) == 0 {
-		out.WriteString("[]")
-	} else if len(c.Args) == 1 {
-		out.WriteString(c.Args[0].String())
+
+	if c.Args == nil {
+		// no args
+		out.WriteString("}}")
 	} else {
-		out.WriteString("[")
-		for i, arg := range c.Args {
-			if i > 0 {
-				out.WriteString(", ")
-			}
-			out.WriteString(arg.String())
-		}
-		out.WriteString("]")
+		out.WriteString(", \"args\": ")
+		out.WriteString(c.Args.String())
+		out.WriteString("}}")
 	}
 
 	return out.String()
