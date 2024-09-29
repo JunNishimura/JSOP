@@ -152,6 +152,16 @@ func (p *Parser) parseCommand() (*ast.CommandObject, error) {
 		return nil, err
 	}
 
+	// when there are no args
+	if p.curTokenIs(token.RBRACE) {
+		p.nextToken()
+		return &ast.CommandObject{
+			Token:  commandToken,
+			Symbol: symbol,
+			Args:   nil,
+		}, nil
+	}
+
 	// skip to args
 	if err := p.expectTokens(
 		token.COMMA,
@@ -164,7 +174,7 @@ func (p *Parser) parseCommand() (*ast.CommandObject, error) {
 	}
 
 	// parse args
-	args, err := p.parseArgs()
+	args, err := p.parseExpression()
 	if err != nil {
 		return nil, err
 	}
@@ -179,34 +189,6 @@ func (p *Parser) parseCommand() (*ast.CommandObject, error) {
 		Symbol: symbol,
 		Args:   args,
 	}, nil
-}
-
-// TODO: parseArgs should be able to parse only one argument without brackets
-func (p *Parser) parseArgs() ([]ast.Expression, error) {
-	args := []ast.Expression{}
-
-	if err := p.expectCurToken(token.LBRACKET); err != nil {
-		return nil, err
-	}
-
-	for !p.curTokenIs(token.RBRACKET) {
-		arg, err := p.parseExpression()
-		if err != nil {
-			return nil, err
-		}
-
-		args = append(args, arg)
-
-		if p.curTokenIs(token.COMMA) {
-			p.nextToken()
-		}
-	}
-
-	if err := p.expectCurToken(token.RBRACKET); err != nil {
-		return nil, err
-	}
-
-	return args, nil
 }
 
 func (p *Parser) parseIfExpression() (*ast.IfExpression, error) {

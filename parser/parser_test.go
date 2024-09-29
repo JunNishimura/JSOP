@@ -249,14 +249,17 @@ func TestCommand(t *testing.T) {
 					Token: token.Token{Type: token.SYMBOL, Literal: "+"},
 					Value: "+",
 				},
-				Args: []ast.Expression{
-					&ast.IntegerLiteral{
-						Token: token.Token{Type: token.INT, Literal: "1"},
-						Value: 1,
-					},
-					&ast.IntegerLiteral{
-						Token: token.Token{Type: token.INT, Literal: "2"},
-						Value: 2,
+				Args: &ast.Array{
+					Token: token.Token{Type: token.LBRACKET, Literal: "["},
+					Elements: []ast.Expression{
+						&ast.IntegerLiteral{
+							Token: token.Token{Type: token.INT, Literal: "1"},
+							Value: 1,
+						},
+						&ast.IntegerLiteral{
+							Token: token.Token{Type: token.INT, Literal: "2"},
+							Value: 2,
+						},
 					},
 				},
 			},
@@ -276,14 +279,17 @@ func TestCommand(t *testing.T) {
 					Token: token.Token{Type: token.SYMBOL, Literal: "-"},
 					Value: "-",
 				},
-				Args: []ast.Expression{
-					&ast.IntegerLiteral{
-						Token: token.Token{Type: token.INT, Literal: "1"},
-						Value: 1,
-					},
-					&ast.IntegerLiteral{
-						Token: token.Token{Type: token.INT, Literal: "2"},
-						Value: 2,
+				Args: &ast.Array{
+					Token: token.Token{Type: token.LBRACKET, Literal: "["},
+					Elements: []ast.Expression{
+						&ast.IntegerLiteral{
+							Token: token.Token{Type: token.INT, Literal: "1"},
+							Value: 1,
+						},
+						&ast.IntegerLiteral{
+							Token: token.Token{Type: token.INT, Literal: "2"},
+							Value: 2,
+						},
 					},
 				},
 			},
@@ -303,14 +309,17 @@ func TestCommand(t *testing.T) {
 					Token: token.Token{Type: token.SYMBOL, Literal: "*"},
 					Value: "*",
 				},
-				Args: []ast.Expression{
-					&ast.IntegerLiteral{
-						Token: token.Token{Type: token.INT, Literal: "1"},
-						Value: 1,
-					},
-					&ast.IntegerLiteral{
-						Token: token.Token{Type: token.INT, Literal: "2"},
-						Value: 2,
+				Args: &ast.Array{
+					Token: token.Token{Type: token.LBRACKET, Literal: "["},
+					Elements: []ast.Expression{
+						&ast.IntegerLiteral{
+							Token: token.Token{Type: token.INT, Literal: "1"},
+							Value: 1,
+						},
+						&ast.IntegerLiteral{
+							Token: token.Token{Type: token.INT, Literal: "2"},
+							Value: 2,
+						},
 					},
 				},
 			},
@@ -330,14 +339,17 @@ func TestCommand(t *testing.T) {
 					Token: token.Token{Type: token.SYMBOL, Literal: "/"},
 					Value: "/",
 				},
-				Args: []ast.Expression{
-					&ast.IntegerLiteral{
-						Token: token.Token{Type: token.INT, Literal: "1"},
-						Value: 1,
-					},
-					&ast.IntegerLiteral{
-						Token: token.Token{Type: token.INT, Literal: "2"},
-						Value: 2,
+				Args: &ast.Array{
+					Token: token.Token{Type: token.LBRACKET, Literal: "["},
+					Elements: []ast.Expression{
+						&ast.IntegerLiteral{
+							Token: token.Token{Type: token.INT, Literal: "1"},
+							Value: 1,
+						},
+						&ast.IntegerLiteral{
+							Token: token.Token{Type: token.INT, Literal: "2"},
+							Value: 2,
+						},
 					},
 				},
 			},
@@ -357,14 +369,17 @@ func TestCommand(t *testing.T) {
 					Token: token.Token{Type: token.SYMBOL, Literal: "=="},
 					Value: "==",
 				},
-				Args: []ast.Expression{
-					&ast.IntegerLiteral{
-						Token: token.Token{Type: token.INT, Literal: "1"},
-						Value: 1,
-					},
-					&ast.IntegerLiteral{
-						Token: token.Token{Type: token.INT, Literal: "2"},
-						Value: 2,
+				Args: &ast.Array{
+					Token: token.Token{Type: token.LBRACKET, Literal: "["},
+					Elements: []ast.Expression{
+						&ast.IntegerLiteral{
+							Token: token.Token{Type: token.INT, Literal: "1"},
+							Value: 1,
+						},
+						&ast.IntegerLiteral{
+							Token: token.Token{Type: token.INT, Literal: "2"},
+							Value: 2,
+						},
 					},
 				},
 			},
@@ -384,15 +399,56 @@ func TestCommand(t *testing.T) {
 					Token: token.Token{Type: token.SYMBOL, Literal: "!="},
 					Value: "!=",
 				},
-				Args: []ast.Expression{
-					&ast.IntegerLiteral{
-						Token: token.Token{Type: token.INT, Literal: "1"},
-						Value: 1,
+				Args: &ast.Array{
+					Token: token.Token{Type: token.LBRACKET, Literal: "["},
+					Elements: []ast.Expression{
+						&ast.IntegerLiteral{
+							Token: token.Token{Type: token.INT, Literal: "1"},
+							Value: 1,
+						},
+						&ast.IntegerLiteral{
+							Token: token.Token{Type: token.INT, Literal: "2"},
+							Value: 2,
+						},
 					},
-					&ast.IntegerLiteral{
-						Token: token.Token{Type: token.INT, Literal: "2"},
-						Value: 2,
-					},
+				},
+			},
+		},
+		{
+			name: "no arguments command",
+			input: `
+				{
+					"command": {
+						"symbol": "hoge"
+					}
+				}`,
+			expected: &ast.CommandObject{
+				Token: token.Token{Type: token.COMMAND, Literal: "command"},
+				Symbol: &ast.Symbol{
+					Token: token.Token{Type: token.SYMBOL, Literal: "hoge"},
+					Value: "hoge",
+				},
+				Args: nil,
+			},
+		},
+		{
+			name: "only one argument command",
+			input: `
+				{
+					"command": {
+						"symbol": "hoge",
+						"args": 1
+					}
+				}`,
+			expected: &ast.CommandObject{
+				Token: token.Token{Type: token.COMMAND, Literal: "command"},
+				Symbol: &ast.Symbol{
+					Token: token.Token{Type: token.SYMBOL, Literal: "hoge"},
+					Value: "hoge",
+				},
+				Args: &ast.IntegerLiteral{
+					Token: token.Token{Type: token.INT, Literal: "1"},
+					Value: 1,
 				},
 			},
 		},
@@ -506,14 +562,17 @@ func TestIfExpression(t *testing.T) {
 						Token: token.Token{Type: token.SYMBOL, Literal: "=="},
 						Value: "==",
 					},
-					Args: []ast.Expression{
-						&ast.IntegerLiteral{
-							Token: token.Token{Type: token.INT, Literal: "1"},
-							Value: 1,
-						},
-						&ast.IntegerLiteral{
-							Token: token.Token{Type: token.INT, Literal: "2"},
-							Value: 2,
+					Args: &ast.Array{
+						Token: token.Token{Type: token.LBRACKET, Literal: "["},
+						Elements: []ast.Expression{
+							&ast.IntegerLiteral{
+								Token: token.Token{Type: token.INT, Literal: "1"},
+								Value: 1,
+							},
+							&ast.IntegerLiteral{
+								Token: token.Token{Type: token.INT, Literal: "2"},
+								Value: 2,
+							},
 						},
 					},
 				},
@@ -523,14 +582,17 @@ func TestIfExpression(t *testing.T) {
 						Token: token.Token{Type: token.SYMBOL, Literal: "+"},
 						Value: "+",
 					},
-					Args: []ast.Expression{
-						&ast.IntegerLiteral{
-							Token: token.Token{Type: token.INT, Literal: "3"},
-							Value: 3,
-						},
-						&ast.IntegerLiteral{
-							Token: token.Token{Type: token.INT, Literal: "4"},
-							Value: 4,
+					Args: &ast.Array{
+						Token: token.Token{Type: token.LBRACKET, Literal: "["},
+						Elements: []ast.Expression{
+							&ast.IntegerLiteral{
+								Token: token.Token{Type: token.INT, Literal: "3"},
+								Value: 3,
+							},
+							&ast.IntegerLiteral{
+								Token: token.Token{Type: token.INT, Literal: "4"},
+								Value: 4,
+							},
 						},
 					},
 				},
@@ -540,14 +602,17 @@ func TestIfExpression(t *testing.T) {
 						Token: token.Token{Type: token.SYMBOL, Literal: "*"},
 						Value: "*",
 					},
-					Args: []ast.Expression{
-						&ast.IntegerLiteral{
-							Token: token.Token{Type: token.INT, Literal: "5"},
-							Value: 5,
-						},
-						&ast.IntegerLiteral{
-							Token: token.Token{Type: token.INT, Literal: "6"},
-							Value: 6,
+					Args: &ast.Array{
+						Token: token.Token{Type: token.LBRACKET, Literal: "["},
+						Elements: []ast.Expression{
+							&ast.IntegerLiteral{
+								Token: token.Token{Type: token.INT, Literal: "5"},
+								Value: 5,
+							},
+							&ast.IntegerLiteral{
+								Token: token.Token{Type: token.INT, Literal: "6"},
+								Value: 6,
+							},
 						},
 					},
 				},
@@ -629,14 +694,17 @@ func TestSetExpression(t *testing.T) {
 						Token: token.Token{Type: token.SYMBOL, Literal: "+"},
 						Value: "+",
 					},
-					Args: []ast.Expression{
-						&ast.IntegerLiteral{
-							Token: token.Token{Type: token.INT, Literal: "1"},
-							Value: 1,
-						},
-						&ast.IntegerLiteral{
-							Token: token.Token{Type: token.INT, Literal: "2"},
-							Value: 2,
+					Args: &ast.Array{
+						Token: token.Token{Type: token.LBRACKET, Literal: "["},
+						Elements: []ast.Expression{
+							&ast.IntegerLiteral{
+								Token: token.Token{Type: token.INT, Literal: "1"},
+								Value: 1,
+							},
+							&ast.IntegerLiteral{
+								Token: token.Token{Type: token.INT, Literal: "2"},
+								Value: 2,
+							},
 						},
 					},
 				},
@@ -720,14 +788,17 @@ func TestPrograms(t *testing.T) {
 							Token: token.Token{Type: token.SYMBOL, Literal: "+"},
 							Value: "+",
 						},
-						Args: []ast.Expression{
-							&ast.IntegerLiteral{
-								Token: token.Token{Type: token.INT, Literal: "1"},
-								Value: 1,
-							},
-							&ast.IntegerLiteral{
-								Token: token.Token{Type: token.INT, Literal: "2"},
-								Value: 2,
+						Args: &ast.Array{
+							Token: token.Token{Type: token.LBRACKET, Literal: "["},
+							Elements: []ast.Expression{
+								&ast.IntegerLiteral{
+									Token: token.Token{Type: token.INT, Literal: "1"},
+									Value: 1,
+								},
+								&ast.IntegerLiteral{
+									Token: token.Token{Type: token.INT, Literal: "2"},
+									Value: 2,
+								},
 							},
 						},
 					},
