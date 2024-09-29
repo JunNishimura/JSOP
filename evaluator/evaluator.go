@@ -128,32 +128,18 @@ func evalCommandObject(command *ast.CommandObject, env *object.Environment) obje
 		return symbol
 	}
 
-	args := evalArgs(command.Args, env)
-	if len(args) == 1 && isError(args[0]) {
-		return args[0]
+	args := Eval(command.Args, env)
+	if isError(args) {
+		return args
 	}
 
 	return applyFunction(symbol, args)
 }
 
-func evalArgs(args []ast.Expression, env *object.Environment) []object.Object {
-	var result []object.Object
-
-	for _, arg := range args {
-		evaluated := Eval(arg, env)
-		if isError(evaluated) {
-			return []object.Object{evaluated}
-		}
-		result = append(result, evaluated)
-	}
-
-	return result
-}
-
-func applyFunction(function object.Object, args []object.Object) object.Object {
+func applyFunction(function object.Object, args object.Object) object.Object {
 	switch funcType := function.(type) {
 	case *object.Builtin:
-		return funcType.Fn(args...)
+		return funcType.Fn(args)
 	default:
 		return newError("not a function: %s", function.Type())
 	}
