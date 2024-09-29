@@ -400,23 +400,43 @@ func TestSetExpression(t *testing.T) {
 	}
 }
 
-func TestMultipleExpressions(t *testing.T) {
+func testArrayObject(t *testing.T, obj object.Object, expected []any) {
+	result, ok := obj.(*object.Array)
+	if !ok {
+		t.Fatalf("object is not Array. got=%T", obj)
+	}
+
+	if len(result.Elements) != len(expected) {
+		t.Fatalf("object has wrong number of elements. got=%d, want=%d", len(result.Elements), len(expected))
+	}
+
+	for i, e := range expected {
+		switch e := e.(type) {
+		case int:
+			testIntegerObject(t, result.Elements[i], int64(e))
+		case bool:
+			testBooleanObject(t, result.Elements[i], e)
+		}
+	}
+}
+
+func TestArrayExpression(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
-		expected int64
+		expected []any
 	}{
 		{
-			name: "multiple atoms",
+			name: "array expression",
 			input: `
 				[
 					1,
 					2
 				]`,
-			expected: 2,
+			expected: []any{1, 2},
 		},
 		{
-			name: "multiple commands",
+			name: "array expression with object",
 			input: `
 				[
 					{
@@ -432,10 +452,10 @@ func TestMultipleExpressions(t *testing.T) {
 						}
 					}
 				]`,
-			expected: -1,
+			expected: []any{3, -1},
 		},
 		{
-			name: "multiple commands with set expression",
+			name: "array expression with set expression",
 			input: `
 				[
 					{
@@ -446,14 +466,14 @@ func TestMultipleExpressions(t *testing.T) {
 					},
 					"$x"
 				]`,
-			expected: 10,
+			expected: []any{10, 10},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			evaluated := testEval(t, tt.input)
-			testIntegerObject(t, evaluated, tt.expected)
+			testArrayObject(t, evaluated, tt.expected)
 		})
 	}
 }

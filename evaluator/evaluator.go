@@ -14,8 +14,8 @@ var (
 
 func Eval(exp ast.Expression, env *object.Environment) object.Object {
 	switch expt := exp.(type) {
-	case *ast.Program:
-		return evalProgram(expt, env)
+	case *ast.Array:
+		return evalArray(expt, env)
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: expt.Value}
 	case *ast.Boolean:
@@ -43,11 +43,17 @@ func Eval(exp ast.Expression, env *object.Environment) object.Object {
 	}
 }
 
-func evalProgram(program *ast.Program, env *object.Environment) object.Object {
-	var result object.Object
+func evalArray(array *ast.Array, env *object.Environment) *object.Array {
+	result := &object.Array{
+		Elements: []object.Object{},
+	}
 
-	for _, exp := range program.Expressions {
-		result = Eval(exp, env)
+	for _, el := range array.Elements {
+		evaluated := Eval(el, env)
+		if isError(evaluated) {
+			return &object.Array{Elements: []object.Object{evaluated}}
+		}
+		result.Elements = append(result.Elements, evaluated)
 	}
 
 	return result
