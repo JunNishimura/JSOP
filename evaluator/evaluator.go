@@ -8,6 +8,7 @@ import (
 )
 
 var (
+	Null  = &object.Null{}
 	True  = &object.Boolean{Value: true}
 	False = &object.Boolean{Value: false}
 )
@@ -126,6 +127,10 @@ func evalCommandObject(command *ast.CommandObject, env *object.Environment) obje
 	symbol := Eval(command.Symbol, env)
 	if isError(symbol) {
 		return symbol
+	}
+
+	if command.Args == nil {
+		return applyFunction(symbol, Null)
 	}
 
 	args := Eval(command.Args, env)

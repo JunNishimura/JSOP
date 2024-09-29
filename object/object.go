@@ -10,6 +10,7 @@ const (
 	INTEGER_OBJ = "INTEGER"
 	BOOLEAN_OBJ = "BOOLEAN"
 	ARRAY_OBJ   = "ARRAY"
+	NULL_OBJ    = "NULL"
 	BUILTIN_OBJ = "BUILTIN"
 )
 
@@ -53,6 +54,11 @@ func (a *Array) Inspect() string {
 
 	return out.String()
 }
+
+type Null struct{}
+
+func (n *Null) Type() ObjectType { return NULL_OBJ }
+func (n *Null) Inspect() string  { return "null" }
 
 type Error struct {
 	Message string
