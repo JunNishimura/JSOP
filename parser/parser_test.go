@@ -8,19 +8,6 @@ import (
 	"github.com/JunNishimura/jsop/token"
 )
 
-func checkParserErrors(t *testing.T, p *Parser) {
-	errors := p.Errors()
-	if len(errors) == 0 {
-		return
-	}
-
-	t.Errorf("parser has %d errors", len(errors))
-	for _, msg := range errors {
-		t.Errorf("parser error: %q", msg)
-	}
-	t.FailNow()
-}
-
 func TestIntegerAtom(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -46,15 +33,12 @@ func TestIntegerAtom(t *testing.T) {
 
 			program, err := p.ParseProgram()
 			if err != nil {
-				checkParserErrors(t, p)
-			}
-			if len(program.Expressions) != 1 {
-				t.Fatalf("program.Expressions does not contain 1 expression. got=%d", len(program.Expressions))
+				t.Fatalf("ParseProgram() error: %v", err)
 			}
 
-			intAtom, ok := program.Expressions[0].(*ast.IntegerLiteral)
+			intAtom, ok := program.(*ast.IntegerLiteral)
 			if !ok {
-				t.Fatalf("exp not *ast.Integer. got=%T", program.Expressions[0])
+				t.Fatalf("exp not *ast.Integer. got=%T", program)
 			}
 			if intAtom.Value != tt.expected {
 				t.Fatalf("intAtom.Value not %d. got=%d", tt.expected, intAtom.Value)
@@ -94,15 +78,12 @@ func TestBooleanAtom(t *testing.T) {
 
 			program, err := p.ParseProgram()
 			if err != nil {
-				checkParserErrors(t, p)
-			}
-			if len(program.Expressions) != 1 {
-				t.Fatalf("program.Expressions does not contain 1 expression. got=%d", len(program.Expressions))
+				t.Fatalf("ParseProgram() error: %v", err)
 			}
 
-			boolean, ok := program.Expressions[0].(*ast.Boolean)
+			boolean, ok := program.(*ast.Boolean)
 			if !ok {
-				t.Fatalf("exp not *ast.Boolean. got=%T", program.Expressions[0])
+				t.Fatalf("exp not *ast.Boolean. got=%T", program)
 			}
 			if boolean.String() != tt.expected.String() {
 				t.Fatalf("boolean.String() not %q. got=%q", tt.expected.String(), boolean.String())
@@ -162,18 +143,86 @@ func TestPrefixAtom(t *testing.T) {
 
 			program, err := p.ParseProgram()
 			if err != nil {
-				checkParserErrors(t, p)
-			}
-			if len(program.Expressions) != 1 {
-				t.Fatalf("program.Expressions does not contain 1 expression. got=%d", len(program.Expressions))
+				t.Fatalf("ParseProgram() error: %v", err)
 			}
 
-			prefixAtom, ok := program.Expressions[0].(*ast.PrefixAtom)
+			prefixAtom, ok := program.(*ast.PrefixAtom)
 			if !ok {
-				t.Fatalf("exp not *ast.PrefixAtom. got=%T", program.Expressions[0])
+				t.Fatalf("exp not *ast.PrefixAtom. got=%T", program)
 			}
 			if prefixAtom.String() != tt.expected.String() {
 				t.Fatalf("prefixAtom.String() not %q. got=%q", tt.expected.String(), prefixAtom.String())
+			}
+		})
+	}
+}
+
+func TestArrayAtom(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected *ast.Array
+	}{
+		{
+			name:  "empty array",
+			input: "[]",
+			expected: &ast.Array{
+				Token:    token.Token{Type: token.LBRACKET, Literal: "["},
+				Elements: []ast.Expression{},
+			},
+		},
+		{
+			name:  "array with 1 element",
+			input: "[1]",
+			expected: &ast.Array{
+				Token: token.Token{Type: token.LBRACKET, Literal: "["},
+				Elements: []ast.Expression{
+					&ast.IntegerLiteral{
+						Token: token.Token{Type: token.INT, Literal: "1"},
+						Value: 1,
+					},
+				},
+			},
+		},
+		{
+			name:  "array with multiple elements",
+			input: "[1, 2, 3]",
+			expected: &ast.Array{
+				Token: token.Token{Type: token.LBRACKET, Literal: "["},
+				Elements: []ast.Expression{
+					&ast.IntegerLiteral{
+						Token: token.Token{Type: token.INT, Literal: "1"},
+						Value: 1,
+					},
+					&ast.IntegerLiteral{
+						Token: token.Token{Type: token.INT, Literal: "2"},
+						Value: 2,
+					},
+					&ast.IntegerLiteral{
+						Token: token.Token{Type: token.INT, Literal: "3"},
+						Value: 3,
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := New(l)
+
+			program, err := p.ParseProgram()
+			if err != nil {
+				t.Fatalf("ParseProgram() error: %v", err)
+			}
+
+			array, ok := program.(*ast.Array)
+			if !ok {
+				t.Fatalf("exp not *ast.Array. got=%T", program)
+			}
+			if array.String() != tt.expected.String() {
+				t.Fatalf("array.String() not %q. got=%q", tt.expected.String(), array.String())
 			}
 		})
 	}
@@ -356,15 +405,12 @@ func TestCommand(t *testing.T) {
 
 			program, err := p.ParseProgram()
 			if err != nil {
-				checkParserErrors(t, p)
-			}
-			if len(program.Expressions) != 1 {
-				t.Fatalf("program.Expressions does not contain 1 expression. got=%d", len(program.Expressions))
+				t.Fatalf("ParseProgram() error: %v", err)
 			}
 
-			command, ok := program.Expressions[0].(*ast.CommandObject)
+			command, ok := program.(*ast.CommandObject)
 			if !ok {
-				t.Fatalf("exp not *ast.Command. got=%T", program.Expressions[0])
+				t.Fatalf("exp not *ast.Command. got=%T", program)
 			}
 			if command.String() != tt.expected.String() {
 				t.Fatalf("command.String() not %q. got=%q", tt.expected.String(), command.String())
@@ -516,15 +562,12 @@ func TestIfExpression(t *testing.T) {
 
 			program, err := p.ParseProgram()
 			if err != nil {
-				checkParserErrors(t, p)
-			}
-			if len(program.Expressions) != 1 {
-				t.Fatalf("program.Expressions does not contain 1 expression. got=%d", len(program.Expressions))
+				t.Fatalf("ParseProgram() error: %v", err)
 			}
 
-			ifExp, ok := program.Expressions[0].(*ast.IfExpression)
+			ifExp, ok := program.(*ast.IfExpression)
 			if !ok {
-				t.Fatalf("exp not *ast.IfExpression. got=%T", program.Expressions[0])
+				t.Fatalf("exp not *ast.IfExpression. got=%T", program)
 			}
 			if ifExp.String() != tt.expected.String() {
 				t.Fatalf("ifExp.String() not %q. got=%q", tt.expected.String(), ifExp.String())
@@ -608,15 +651,12 @@ func TestSetExpression(t *testing.T) {
 
 			program, err := p.ParseProgram()
 			if err != nil {
-				checkParserErrors(t, p)
-			}
-			if len(program.Expressions) != 1 {
-				t.Fatalf("program.Expressions does not contain 1 expression. got=%d", len(program.Expressions))
+				t.Fatalf("ParseProgram() error:	%v", err)
 			}
 
-			setExp, ok := program.Expressions[0].(*ast.SetExpression)
+			setExp, ok := program.(*ast.SetExpression)
 			if !ok {
-				t.Fatalf("exp not *ast.SetExpression. got=%T", program.Expressions[0])
+				t.Fatalf("exp not *ast.SetExpression. got=%T", program)
 			}
 			if setExp.String() != tt.expected.String() {
 				t.Fatalf("setExp.String() not %q. got=%q", tt.expected.String(), setExp.String())
@@ -629,7 +669,7 @@ func TestPrograms(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
-		expected *ast.Program
+		expected ast.Expression
 	}{
 		{
 			name: "multiple atoms",
@@ -639,8 +679,9 @@ func TestPrograms(t *testing.T) {
 					true
 				]
 			`,
-			expected: &ast.Program{
-				Expressions: []ast.Expression{
+			expected: &ast.Array{
+				Token: token.Token{Type: token.LBRACKET, Literal: "["},
+				Elements: []ast.Expression{
 					&ast.IntegerLiteral{
 						Token: token.Token{Type: token.INT, Literal: "1"},
 						Value: 1,
@@ -670,8 +711,9 @@ func TestPrograms(t *testing.T) {
 					}
 				]
 			`,
-			expected: &ast.Program{
-				Expressions: []ast.Expression{
+			expected: &ast.Array{
+				Token: token.Token{Type: token.LBRACKET, Literal: "["},
+				Elements: []ast.Expression{
 					&ast.CommandObject{
 						Token: token.Token{Type: token.COMMAND, Literal: "command"},
 						Symbol: &ast.Symbol{
@@ -717,8 +759,9 @@ func TestPrograms(t *testing.T) {
 					"$x"
 				]
 			`,
-			expected: &ast.Program{
-				Expressions: []ast.Expression{
+			expected: &ast.Array{
+				Token: token.Token{Type: token.LBRACKET, Literal: "["},
+				Elements: []ast.Expression{
 					&ast.SetExpression{
 						Token: token.Token{Type: token.SET, Literal: "set"},
 						Name: &ast.Symbol{
@@ -746,16 +789,16 @@ func TestPrograms(t *testing.T) {
 
 			program, err := p.ParseProgram()
 			if err != nil {
-				checkParserErrors(t, p)
-			}
-			if len(program.Expressions) != len(tt.expected.Expressions) {
-				t.Fatalf("program.Expressions does not contain %d expressions. got=%d", len(tt.expected.Expressions), len(program.Expressions))
+				t.Fatalf("ParseProgram() error: %v", err)
 			}
 
-			for i, exp := range tt.expected.Expressions {
-				if program.Expressions[i].String() != exp.String() {
-					t.Fatalf("exp.String() not %q. got=%q", exp.String(), program.Expressions[i].String())
-				}
+			array, ok := program.(*ast.Array)
+			if !ok {
+				t.Fatalf("exp not *ast.Array. got=%T", program)
+			}
+
+			if array.String() != tt.expected.String() {
+				t.Fatalf("array.String() not %q. got=%q", tt.expected.String(), array.String())
 			}
 		})
 	}

@@ -63,6 +63,18 @@ func TestSingleProgram(t *testing.T) {
 			},
 		},
 		{
+			name:  "array",
+			input: "[1, 2]",
+			expected: []token.Token{
+				{Type: token.LBRACKET, Literal: "["},
+				{Type: token.INT, Literal: "1"},
+				{Type: token.COMMA, Literal: ","},
+				{Type: token.INT, Literal: "2"},
+				{Type: token.RBRACKET, Literal: "]"},
+				{Type: token.EOF, Literal: ""},
+			},
+		},
+		{
 			name: "mathematical operation: addition",
 			input: `
 				{

@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 
@@ -15,8 +14,6 @@ type Parser struct {
 
 	curToken  token.Token
 	peekToken token.Token
-
-	errors error
 }
 
 func New(l *lexer.Lexer) *Parser {
@@ -30,94 +27,26 @@ func New(l *lexer.Lexer) *Parser {
 	return p
 }
 
-func (p *Parser) Errors() []string {
-	out := []string{}
-
-	if errs, ok := p.errors.(interface{ Unwrap() []error }); ok {
-		for _, err := range errs.Unwrap() {
-			out = append(out, err.Error())
-		}
-	} else {
-		out = append(out, p.errors.Error())
-	}
-
-	return out
-}
-
-func (p *Parser) appendError(err error) {
-	p.errors = errors.Join(p.errors, err)
-}
-
 func (p *Parser) nextToken() {
 	p.curToken = p.peekToken
 	p.peekToken = p.l.NextToken()
 }
 
-func (p *Parser) ParseProgram() (*ast.Program, error) {
+func (p *Parser) ParseProgram() (ast.Expression, error) {
 	if p.curTokenIs(token.EOF) {
 		return nil, nil
 	}
 
-	var err error
-	program := &ast.Program{
-		Expressions: []ast.Expression{},
+	exp, err := p.parseExpression()
+	if err != nil {
+		return nil, err
 	}
 
-	if p.curTokenIs(token.LBRACKET) {
-		program, err = p.parseMultipleExpressions()
-		if err != nil {
-			p.appendError(err)
-		}
-	} else {
-		exp, err := p.parseExpression()
-		if err != nil {
-			p.appendError(err)
-		}
-
-		program.Expressions = append(program.Expressions, exp)
+	if err := p.expectCurToken(token.EOF); err != nil {
+		return nil, err
 	}
 
-	if !p.curTokenIs(token.EOF) {
-		p.appendError(fmt.Errorf("expected EOF, got %s instead", p.curToken.Type))
-	}
-
-	if p.errors != nil {
-		return nil, p.errors
-	}
-
-	return program, nil
-}
-
-func (p *Parser) parseMultipleExpressions() (*ast.Program, error) {
-	if err := p.expectCurToken(token.LBRACKET); err != nil {
-		p.appendError(err)
-	}
-
-	program := &ast.Program{
-		Expressions: []ast.Expression{},
-	}
-
-	for {
-		exp, err := p.parseExpression()
-		if err != nil {
-			p.appendError(err)
-		}
-
-		program.Expressions = append(program.Expressions, exp)
-
-		if p.curTokenIs(token.COMMA) {
-			// if the program still has more expressions, skip the comma and continue
-			p.nextToken()
-		} else {
-			// if the program has no more expressions, break the loop
-			if err := p.expectCurToken(token.RBRACKET); err != nil {
-				p.appendError(err)
-			}
-			break
-		}
-	}
-
-	return program, nil
+	return exp, nil
 }
 
 func (p *Parser) curTokenIs(t token.TokenType) bool {
@@ -252,6 +181,7 @@ func (p *Parser) parseCommand() (*ast.CommandObject, error) {
 	}, nil
 }
 
+// TODO: parseArgs should be able to parse only one argument without brackets
 func (p *Parser) parseArgs() ([]ast.Expression, error) {
 	args := []ast.Expression{}
 
@@ -426,6 +356,8 @@ func (p *Parser) parseAtom() (ast.Expression, error) {
 		return p.parseBoolean()
 	case token.DOUBLE_QUOTE:
 		return p.parseDoubleQuotedString()
+	case token.LBRACKET:
+		return p.parseArray()
 	default:
 		err := fmt.Errorf("unexpected token type %s", p.curToken.Type)
 		p.nextToken()
@@ -493,6 +425,41 @@ func (p *Parser) parseDoubleQuotedString() (ast.Expression, error) {
 
 	// TOOD: parse string literal
 	return nil, fmt.Errorf("unexpected token type %s", p.curToken.Type)
+}
+
+func (p *Parser) parseArray() (*ast.Array, error) {
+	if !p.curTokenIs(token.LBRACKET) {
+		return nil, fmt.Errorf("expected LBRACKET, got %s instead", p.curToken.Type)
+	}
+	arrayToken := p.curToken
+	p.nextToken()
+
+	elements := []ast.Expression{}
+
+	// empty array
+	if p.curTokenIs(token.RBRACKET) {
+		p.nextToken()
+		return &ast.Array{Token: arrayToken, Elements: elements}, nil
+	}
+
+	for {
+		element, err := p.parseExpression()
+		if err != nil {
+			return nil, err
+		}
+		elements = append(elements, element)
+
+		if p.curTokenIs(token.COMMA) {
+			p.nextToken()
+		} else {
+			if err := p.expectCurToken(token.RBRACKET); err != nil {
+				return nil, err
+			}
+			break
+		}
+	}
+
+	return &ast.Array{Token: arrayToken, Elements: elements}, nil
 }
 
 func (p *Parser) parseSymbol() (*ast.Symbol, error) {

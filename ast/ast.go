@@ -11,28 +11,6 @@ type Expression interface {
 	String() string
 }
 
-type Program struct {
-	Expressions []Expression
-}
-
-func (p *Program) TokenLiteral() string {
-	if len(p.Expressions) > 0 {
-		return p.Expressions[0].TokenLiteral()
-	} else {
-		return ""
-	}
-}
-
-func (p *Program) String() string {
-	var out bytes.Buffer
-
-	for _, exp := range p.Expressions {
-		out.WriteString(exp.String())
-	}
-
-	return out.String()
-}
-
 type IntegerLiteral struct {
 	Token token.Token
 	Value int64
@@ -73,6 +51,27 @@ type Symbol struct {
 func (s *Symbol) TokenLiteral() string { return s.Token.Literal }
 func (s *Symbol) String() string       { return s.Token.Literal }
 
+type Array struct {
+	Token    token.Token
+	Elements []Expression
+}
+
+func (a *Array) TokenLiteral() string { return a.Token.Literal }
+func (a *Array) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("[")
+	for i, el := range a.Elements {
+		if i > 0 {
+			out.WriteString(", ")
+		}
+		out.WriteString(el.String())
+	}
+	out.WriteString("]")
+
+	return out.String()
+}
+
 type CommandObject struct {
 	Token  token.Token
 	Symbol Expression
@@ -85,14 +84,21 @@ func (c *CommandObject) String() string {
 
 	out.WriteString("{\"command\": {\"symbol\": ")
 	out.WriteString(c.Symbol.String())
-	out.WriteString(", \"args\": [")
-	for i, arg := range c.Args {
-		out.WriteString(arg.String())
-		if i != len(c.Args)-1 {
-			out.WriteString(", ")
+	out.WriteString(", \"args\": ")
+	if len(c.Args) == 0 {
+		out.WriteString("[]")
+	} else if len(c.Args) == 1 {
+		out.WriteString(c.Args[0].String())
+	} else {
+		out.WriteString("[")
+		for i, arg := range c.Args {
+			if i > 0 {
+				out.WriteString(", ")
+			}
+			out.WriteString(arg.String())
 		}
+		out.WriteString("]")
 	}
-	out.WriteString("]}}")
 
 	return out.String()
 }
