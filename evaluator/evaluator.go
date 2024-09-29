@@ -129,6 +129,10 @@ func evalCommandObject(command *ast.CommandObject, env *object.Environment) obje
 		return symbol
 	}
 
+	if command.Args == nil {
+		return applyFunction(symbol, Null)
+	}
+
 	args := Eval(command.Args, env)
 	if isError(args) {
 		return args
