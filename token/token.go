@@ -12,6 +12,7 @@ const (
 	EOF     = "EOF"
 
 	INT       = "INT"
+	STRING    = "STRING"
 	SYMBOLKEY = "SYMBOL_KEY"
 	COMMAND   = "COMMAND"
 	ARGS      = "ARGS"
