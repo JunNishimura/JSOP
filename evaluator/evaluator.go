@@ -82,8 +82,6 @@ func evalPrefixAtom(operator string, right object.Object) object.Object {
 	switch operator {
 	case "-":
 		return evalMinusPrefix(right)
-	case "!":
-		return evalExclamationPrefix(right)
 	default:
 		return newError("unknown operator: %s%s", operator, right)
 	}
@@ -96,17 +94,6 @@ func evalMinusPrefix(right object.Object) object.Object {
 
 	value := right.(*object.Integer).Value
 	return &object.Integer{Value: -value}
-}
-
-func evalExclamationPrefix(right object.Object) object.Object {
-	switch right {
-	case True:
-		return False
-	case False:
-		return True
-	default:
-		return newError("unknown operator: !%s", right)
-	}
 }
 
 func evalSymbol(symbol *ast.Symbol, env *object.Environment) object.Object {

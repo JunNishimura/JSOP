@@ -53,10 +53,6 @@ func (p *Parser) curTokenIs(t token.TokenType) bool {
 	return p.curToken.Type == t
 }
 
-func (p *Parser) peekTokenIs(t token.TokenType) bool {
-	return p.peekToken.Type == t
-}
-
 func (p *Parser) expectCurToken(t token.TokenType) error {
 	if p.curTokenIs(t) {
 		p.nextToken()
@@ -147,7 +143,7 @@ func (p *Parser) parseCommand() (*ast.CommandObject, error) {
 	}
 
 	// parse symbol
-	symbol, err := p.parseSymbol()
+	symbol, err := p.parseDoubleQuotedString()
 	if err != nil {
 		return nil, err
 	}
@@ -330,7 +326,7 @@ func (p *Parser) parseSetExpression() (*ast.SetExpression, error) {
 
 func (p *Parser) parseAtom() (ast.Expression, error) {
 	switch p.curToken.Type {
-	case token.MINUS, token.EXCLAM:
+	case token.MINUS:
 		return p.parsePrefixAtom()
 	case token.INT:
 		return p.parseIntegerLiteral()
@@ -401,12 +397,38 @@ func (p *Parser) parseBoolean() (*ast.Boolean, error) {
 }
 
 func (p *Parser) parseDoubleQuotedString() (ast.Expression, error) {
-	if p.peekTokenIs(token.DOLLAR) {
-		return p.parseSymbol()
+	if err := p.expectCurToken(token.DOUBLE_QUOTE); err != nil {
+		return nil, err
 	}
 
-	// TOOD: parse string literal
-	return nil, fmt.Errorf("unexpected token type %s", p.curToken.Type)
+	var res ast.Expression
+
+	if p.curTokenIs(token.STRING) {
+		res = &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}
+	} else if p.curTokenIs(token.SYMBOL) ||
+		p.curTokenIs(token.PLUS) ||
+		p.curTokenIs(token.MINUS) ||
+		p.curTokenIs(token.ASTERISK) ||
+		p.curTokenIs(token.SLASH) ||
+		p.curTokenIs(token.LT) ||
+		p.curTokenIs(token.LTE) ||
+		p.curTokenIs(token.GT) ||
+		p.curTokenIs(token.GTE) ||
+		p.curTokenIs(token.EQ) ||
+		p.curTokenIs(token.NOT_EQ) ||
+		p.curTokenIs(token.EXCLAM) {
+		res = &ast.Symbol{Token: p.curToken, Value: p.curToken.Literal}
+	} else {
+		return nil, fmt.Errorf("unexpected token type %s", p.curToken.Type)
+	}
+
+	p.nextToken()
+
+	if err := p.expectCurToken(token.DOUBLE_QUOTE); err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func (p *Parser) parseArray() (*ast.Array, error) {
@@ -442,26 +464,4 @@ func (p *Parser) parseArray() (*ast.Array, error) {
 	}
 
 	return &ast.Array{Token: arrayToken, Elements: elements}, nil
-}
-
-func (p *Parser) parseSymbol() (*ast.Symbol, error) {
-	if err := p.expectCurToken(token.DOUBLE_QUOTE); err != nil {
-		return nil, err
-	}
-
-	if p.curTokenIs(token.DOLLAR) {
-		p.nextToken()
-	}
-
-	if !p.curTokenIs(token.SYMBOL) {
-		return nil, fmt.Errorf("expected symbol, got %s instead", p.curToken.Type)
-	}
-
-	symbol := &ast.Symbol{Token: p.curToken, Value: p.curToken.Literal}
-
-	if err := p.expectTokens(token.SYMBOL, token.DOUBLE_QUOTE); err != nil {
-		return nil, err
-	}
-
-	return symbol, nil
 }

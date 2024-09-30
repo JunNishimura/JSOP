@@ -12,6 +12,7 @@ const (
 	EOF     = "EOF"
 
 	INT       = "INT"
+	STRING    = "STRING"
 	SYMBOLKEY = "SYMBOL_KEY"
 	COMMAND   = "COMMAND"
 	ARGS      = "ARGS"
@@ -25,8 +26,17 @@ const (
 
 	SYMBOL = "SYMBOL"
 
-	MINUS  = "-"
-	EXCLAM = "!"
+	PLUS     = "+"
+	MINUS    = "-"
+	ASTERISK = "*"
+	SLASH    = "/"
+	LT       = "<"
+	LTE      = "<="
+	GT       = ">"
+	GTE      = ">="
+	EQ       = "=="
+	NOT_EQ   = "!="
+	EXCLAM   = "!"
 
 	TRUE  = "true"
 	FALSE = "false"
@@ -38,7 +48,6 @@ const (
 	DOUBLE_QUOTE = "\""
 	COLON        = ":"
 	COMMA        = ","
-	DOLLAR       = "$"
 )
 
 var reservedWords = map[string]TokenType{
@@ -60,5 +69,5 @@ func LookupStringTokenType(word string) TokenType {
 	if tok, ok := reservedWords[word]; ok {
 		return tok
 	}
-	return SYMBOL
+	return STRING
 }

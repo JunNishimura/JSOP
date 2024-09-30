@@ -139,16 +139,6 @@ func TestEvalBooleanExpression(t *testing.T) {
 			expected: false,
 		},
 		{
-			name:     "negation of true",
-			input:    "!true",
-			expected: false,
-		},
-		{
-			name:     "negation of false",
-			input:    "!false",
-			expected: true,
-		},
-		{
 			name: "equation symbol: return true",
 			input: `
 				{
@@ -279,6 +269,28 @@ func TestEvalBooleanExpression(t *testing.T) {
 					}
 				}`,
 			expected: false,
+		},
+		{
+			name: "negation of true",
+			input: `
+				{
+					"command": {
+						"symbol": "!",
+						"args": true
+					}
+				}`,
+			expected: false,
+		},
+		{
+			name: "negation of false",
+			input: `
+				{
+					"command": {
+						"symbol": "!",
+						"args": false
+					}
+				}`,
+			expected: true,
 		},
 	}
 

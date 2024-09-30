@@ -243,4 +243,13 @@ var builtins = map[string]*object.Builtin{
 			return True
 		},
 	},
+	"!": {
+		Fn: func(args object.Object) object.Object {
+			if args.Type() != object.BOOLEAN_OBJ {
+				return newError("argument to '!' must be BOOLEAN, got %s", args.Type())
+			}
+
+			return &object.Boolean{Value: !args.(*object.Boolean).Value}
+		},
+	},
 }

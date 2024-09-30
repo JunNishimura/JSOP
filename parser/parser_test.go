@@ -47,6 +47,40 @@ func TestIntegerAtom(t *testing.T) {
 	}
 }
 
+func TestStringAtom(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "string with double quotes",
+			input:    `"hello"`,
+			expected: "hello",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := New(l)
+
+			program, err := p.ParseProgram()
+			if err != nil {
+				t.Fatalf("ParseProgram() error: %v", err)
+			}
+
+			strAtom, ok := program.(*ast.StringLiteral)
+			if !ok {
+				t.Fatalf("exp not *ast.String. got=%T", program)
+			}
+			if strAtom.Value != tt.expected {
+				t.Fatalf("strAtom.Value not %q. got=%q", tt.expected, strAtom.Value)
+			}
+		})
+	}
+}
+
 func TestBooleanAtom(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -107,30 +141,6 @@ func TestPrefixAtom(t *testing.T) {
 				Right: &ast.IntegerLiteral{
 					Token: token.Token{Type: token.INT, Literal: "123"},
 					Value: 123,
-				},
-			},
-		},
-		{
-			name:  "negation of true",
-			input: "!true",
-			expected: &ast.PrefixAtom{
-				Token:    token.Token{Type: token.EXCLAM, Literal: "!"},
-				Operator: "!",
-				Right: &ast.Boolean{
-					Token: token.Token{Type: token.TRUE, Literal: "true"},
-					Value: true,
-				},
-			},
-		},
-		{
-			name:  "negation of false",
-			input: "!false",
-			expected: &ast.PrefixAtom{
-				Token:    token.Token{Type: token.EXCLAM, Literal: "!"},
-				Operator: "!",
-				Right: &ast.Boolean{
-					Token: token.Token{Type: token.FALSE, Literal: "false"},
-					Value: false,
 				},
 			},
 		},
@@ -246,7 +256,7 @@ func TestCommand(t *testing.T) {
 			expected: &ast.CommandObject{
 				Token: token.Token{Type: token.COMMAND, Literal: "command"},
 				Symbol: &ast.Symbol{
-					Token: token.Token{Type: token.SYMBOL, Literal: "+"},
+					Token: token.Token{Type: token.PLUS, Literal: "+"},
 					Value: "+",
 				},
 				Args: &ast.Array{
@@ -276,7 +286,7 @@ func TestCommand(t *testing.T) {
 			expected: &ast.CommandObject{
 				Token: token.Token{Type: token.COMMAND, Literal: "command"},
 				Symbol: &ast.Symbol{
-					Token: token.Token{Type: token.SYMBOL, Literal: "-"},
+					Token: token.Token{Type: token.MINUS, Literal: "-"},
 					Value: "-",
 				},
 				Args: &ast.Array{
@@ -306,7 +316,7 @@ func TestCommand(t *testing.T) {
 			expected: &ast.CommandObject{
 				Token: token.Token{Type: token.COMMAND, Literal: "command"},
 				Symbol: &ast.Symbol{
-					Token: token.Token{Type: token.SYMBOL, Literal: "*"},
+					Token: token.Token{Type: token.ASTERISK, Literal: "*"},
 					Value: "*",
 				},
 				Args: &ast.Array{
@@ -336,7 +346,7 @@ func TestCommand(t *testing.T) {
 			expected: &ast.CommandObject{
 				Token: token.Token{Type: token.COMMAND, Literal: "command"},
 				Symbol: &ast.Symbol{
-					Token: token.Token{Type: token.SYMBOL, Literal: "/"},
+					Token: token.Token{Type: token.SLASH, Literal: "/"},
 					Value: "/",
 				},
 				Args: &ast.Array{
@@ -366,7 +376,7 @@ func TestCommand(t *testing.T) {
 			expected: &ast.CommandObject{
 				Token: token.Token{Type: token.COMMAND, Literal: "command"},
 				Symbol: &ast.Symbol{
-					Token: token.Token{Type: token.SYMBOL, Literal: "=="},
+					Token: token.Token{Type: token.EQ, Literal: "=="},
 					Value: "==",
 				},
 				Args: &ast.Array{
@@ -396,7 +406,7 @@ func TestCommand(t *testing.T) {
 			expected: &ast.CommandObject{
 				Token: token.Token{Type: token.COMMAND, Literal: "command"},
 				Symbol: &ast.Symbol{
-					Token: token.Token{Type: token.SYMBOL, Literal: "!="},
+					Token: token.Token{Type: token.NOT_EQ, Literal: "!="},
 					Value: "!=",
 				},
 				Args: &ast.Array{
@@ -415,18 +425,39 @@ func TestCommand(t *testing.T) {
 			},
 		},
 		{
-			name: "no arguments command",
+			name: "negation of true",
 			input: `
 				{
 					"command": {
-						"symbol": "hoge"
+						"symbol": "!",
+						"args": true
 					}
 				}`,
 			expected: &ast.CommandObject{
 				Token: token.Token{Type: token.COMMAND, Literal: "command"},
 				Symbol: &ast.Symbol{
-					Token: token.Token{Type: token.SYMBOL, Literal: "hoge"},
-					Value: "hoge",
+					Token: token.Token{Type: token.EXCLAM, Literal: "!"},
+					Value: "!",
+				},
+				Args: &ast.Boolean{
+					Token: token.Token{Type: token.TRUE, Literal: "true"},
+					Value: true,
+				},
+			},
+		},
+		{
+			name: "no arguments command",
+			input: `
+				{
+					"command": {
+						"symbol": "$hoge"
+					}
+				}`,
+			expected: &ast.CommandObject{
+				Token: token.Token{Type: token.COMMAND, Literal: "command"},
+				Symbol: &ast.Symbol{
+					Token: token.Token{Type: token.SYMBOL, Literal: "$hoge"},
+					Value: "$hoge",
 				},
 				Args: nil,
 			},
@@ -436,15 +467,15 @@ func TestCommand(t *testing.T) {
 			input: `
 				{
 					"command": {
-						"symbol": "hoge",
+						"symbol": "$hoge",
 						"args": 1
 					}
 				}`,
 			expected: &ast.CommandObject{
 				Token: token.Token{Type: token.COMMAND, Literal: "command"},
 				Symbol: &ast.Symbol{
-					Token: token.Token{Type: token.SYMBOL, Literal: "hoge"},
-					Value: "hoge",
+					Token: token.Token{Type: token.SYMBOL, Literal: "$hoge"},
+					Value: "$hoge",
 				},
 				Args: &ast.IntegerLiteral{
 					Token: token.Token{Type: token.INT, Literal: "1"},
@@ -559,7 +590,7 @@ func TestIfExpression(t *testing.T) {
 				Condition: &ast.CommandObject{
 					Token: token.Token{Type: token.COMMAND, Literal: "command"},
 					Symbol: &ast.Symbol{
-						Token: token.Token{Type: token.SYMBOL, Literal: "=="},
+						Token: token.Token{Type: token.EQ, Literal: "=="},
 						Value: "==",
 					},
 					Args: &ast.Array{
@@ -579,7 +610,7 @@ func TestIfExpression(t *testing.T) {
 				Consequence: &ast.CommandObject{
 					Token: token.Token{Type: token.COMMAND, Literal: "command"},
 					Symbol: &ast.Symbol{
-						Token: token.Token{Type: token.SYMBOL, Literal: "+"},
+						Token: token.Token{Type: token.PLUS, Literal: "+"},
 						Value: "+",
 					},
 					Args: &ast.Array{
@@ -599,7 +630,7 @@ func TestIfExpression(t *testing.T) {
 				Alternative: &ast.CommandObject{
 					Token: token.Token{Type: token.COMMAND, Literal: "command"},
 					Symbol: &ast.Symbol{
-						Token: token.Token{Type: token.SYMBOL, Literal: "*"},
+						Token: token.Token{Type: token.ASTERISK, Literal: "*"},
 						Value: "*",
 					},
 					Args: &ast.Array{
@@ -659,8 +690,8 @@ func TestSetExpression(t *testing.T) {
 			expected: &ast.SetExpression{
 				Token: token.Token{Type: token.SET, Literal: "set"},
 				Name: &ast.Symbol{
-					Token: token.Token{Type: token.SYMBOL, Literal: "x"},
-					Value: "x",
+					Token: token.Token{Type: token.SYMBOL, Literal: "$x"},
+					Value: "$x",
 				},
 				Value: &ast.IntegerLiteral{
 					Token: token.Token{Type: token.INT, Literal: "1"},
@@ -685,8 +716,8 @@ func TestSetExpression(t *testing.T) {
 			expected: &ast.SetExpression{
 				Token: token.Token{Type: token.SET, Literal: "set"},
 				Name: &ast.Symbol{
-					Token: token.Token{Type: token.SYMBOL, Literal: "x"},
-					Value: "x",
+					Token: token.Token{Type: token.SYMBOL, Literal: "$x"},
+					Value: "$x",
 				},
 				Value: &ast.CommandObject{
 					Token: token.Token{Type: token.COMMAND, Literal: "command"},
@@ -785,7 +816,7 @@ func TestPrograms(t *testing.T) {
 					&ast.CommandObject{
 						Token: token.Token{Type: token.COMMAND, Literal: "command"},
 						Symbol: &ast.Symbol{
-							Token: token.Token{Type: token.SYMBOL, Literal: "+"},
+							Token: token.Token{Type: token.PLUS, Literal: "+"},
 							Value: "+",
 						},
 						Args: &ast.Array{
@@ -836,8 +867,8 @@ func TestPrograms(t *testing.T) {
 					&ast.SetExpression{
 						Token: token.Token{Type: token.SET, Literal: "set"},
 						Name: &ast.Symbol{
-							Token: token.Token{Type: token.SYMBOL, Literal: "x"},
-							Value: "x",
+							Token: token.Token{Type: token.SYMBOL, Literal: "$x"},
+							Value: "$x",
 						},
 						Value: &ast.IntegerLiteral{
 							Token: token.Token{Type: token.INT, Literal: "1"},
@@ -845,8 +876,8 @@ func TestPrograms(t *testing.T) {
 						},
 					},
 					&ast.Symbol{
-						Token: token.Token{Type: token.SYMBOL, Literal: "x"},
-						Value: "x",
+						Token: token.Token{Type: token.SYMBOL, Literal: "$x"},
+						Value: "$x",
 					},
 				},
 			},

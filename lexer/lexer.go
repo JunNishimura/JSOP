@@ -46,32 +46,26 @@ func (l *Lexer) NextToken() token.Token {
 	case ',':
 		tok = newToken(token.COMMA, l.curChar)
 	case '+':
-		tok = newToken(token.SYMBOL, l.curChar)
+		tok = newToken(token.PLUS, l.curChar)
 	case '-':
-		if isDigit(l.peekChar()) {
-			tok = newToken(token.MINUS, l.curChar)
-		} else {
-			tok = newToken(token.SYMBOL, l.curChar)
-		}
+		tok = newToken(token.MINUS, l.curChar)
 	case '*':
-		tok = newToken(token.SYMBOL, l.curChar)
+		tok = newToken(token.ASTERISK, l.curChar)
 	case '/':
-		tok = newToken(token.SYMBOL, l.curChar)
+		tok = newToken(token.SLASH, l.curChar)
 	case '=':
 		if l.peekChar() == '=' {
 			ch := l.curChar
 			l.readChar()
 			literal := string(ch) + string(l.curChar)
-			tok = token.Token{Type: token.SYMBOL, Literal: literal}
-		} else {
-			tok = newToken(token.SYMBOL, l.curChar)
+			tok = token.Token{Type: token.EQ, Literal: literal}
 		}
 	case '!':
 		if l.peekChar() == '=' {
 			ch := l.curChar
 			l.readChar()
 			literal := string(ch) + string(l.curChar)
-			tok = token.Token{Type: token.SYMBOL, Literal: literal}
+			tok = token.Token{Type: token.NOT_EQ, Literal: literal}
 		} else {
 			tok = newToken(token.EXCLAM, l.curChar)
 		}
@@ -80,21 +74,24 @@ func (l *Lexer) NextToken() token.Token {
 			ch := l.curChar
 			l.readChar()
 			literal := string(ch) + string(l.curChar)
-			tok = token.Token{Type: token.SYMBOL, Literal: literal}
+			tok = token.Token{Type: token.LTE, Literal: literal}
 		} else {
-			tok = newToken(token.SYMBOL, l.curChar)
+			tok = newToken(token.LT, l.curChar)
 		}
 	case '>':
 		if l.peekChar() == '=' {
 			ch := l.curChar
 			l.readChar()
 			literal := string(ch) + string(l.curChar)
-			tok = token.Token{Type: token.SYMBOL, Literal: literal}
+			tok = token.Token{Type: token.GTE, Literal: literal}
 		} else {
-			tok = newToken(token.SYMBOL, l.curChar)
+			tok = newToken(token.GT, l.curChar)
 		}
 	case '$':
-		tok = newToken(token.DOLLAR, l.curChar)
+		ch := l.curChar
+		l.readChar()
+		literal := string(ch) + l.readString()
+		return token.Token{Type: token.SYMBOL, Literal: literal}
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
