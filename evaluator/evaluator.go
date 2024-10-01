@@ -39,6 +39,8 @@ func Eval(exp ast.Expression, env *object.Environment) object.Object {
 			return value
 		}
 		return env.Set(expt.Name.Value, value)
+	case *ast.LoopExpression:
+		return evalLoopExpression(expt, env)
 	default:
 		return newError("unknown expression type: %T", exp)
 	}
@@ -161,4 +163,38 @@ func isTruthy(obj object.Object) bool {
 	default:
 		return true
 	}
+}
+
+func evalLoopExpression(le *ast.LoopExpression, env *object.Environment) object.Object {
+	from := Eval(le.From, env)
+	if isError(from) {
+		return from
+	}
+	fromValue, ok := from.(*object.Integer)
+	if !ok {
+		return newError("from value must be INTEGER, got %s", from.Type())
+	}
+
+	to := Eval(le.To, env)
+	if isError(to) {
+		return to
+	}
+	toValue, ok := to.(*object.Integer)
+	if !ok {
+		return newError("to value must be INTEGER, got %s", to.Type())
+	}
+
+	var result object.Object
+
+	for i := fromValue.Value; i < toValue.Value; i++ {
+		env.Set(le.Index.Value, &object.Integer{Value: i})
+		evaluated := Eval(le.Body, env)
+		if isError(evaluated) {
+			return evaluated
+		}
+
+		result = evaluated
+	}
+
+	return result
 }

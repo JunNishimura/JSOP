@@ -369,6 +369,40 @@ func TestIfElseExpression(t *testing.T) {
 	}
 }
 
+func TestLoopExpression(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected int64
+	}{
+		{
+			name: "loop expression",
+			input: `
+				{
+					"loop": {
+						"for": "$i",
+						"from": 1,
+						"to": 3,
+						"do": {
+							"command": {
+								"symbol": "+",
+								"args": [1, "$i"]
+							}
+						}
+					}
+				}`,
+			expected: 3,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			evaluated := testEval(t, tt.input)
+			testIntegerObject(t, evaluated, tt.expected)
+		})
+	}
+}
+
 func TestSetExpression(t *testing.T) {
 	tests := []struct {
 		name     string

@@ -129,6 +129,31 @@ func (ie *IfExpression) String() string {
 	return out.String()
 }
 
+type LoopExpression struct {
+	Token token.Token
+	Index *Symbol
+	From  *IntegerLiteral
+	To    *IntegerLiteral
+	Body  Expression
+}
+
+func (le *LoopExpression) TokenLiteral() string { return le.Token.Literal }
+func (le *LoopExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("{\"loop\": {\"for\": ")
+	out.WriteString(le.Index.String())
+	out.WriteString(", \"from\": ")
+	out.WriteString(le.From.String())
+	out.WriteString(", \"to\": ")
+	out.WriteString(le.To.String())
+	out.WriteString(", \"body\": ")
+	out.WriteString(le.Body.String())
+	out.WriteString("}}")
+
+	return out.String()
+}
+
 type SetExpression struct {
 	Token token.Token
 	Name  *Symbol
