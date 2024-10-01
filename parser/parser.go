@@ -110,6 +110,8 @@ func (p *Parser) parseObject() (obj ast.Expression, err error) {
 		obj, err = p.parseIfExpression()
 	case token.SET:
 		obj, err = p.parseSetExpression()
+	case token.LOOP:
+		obj, err = p.parseLoopExpression()
 	default:
 		err = fmt.Errorf("unexpected token type %s", p.curToken.Type)
 	}
@@ -321,6 +323,106 @@ func (p *Parser) parseSetExpression() (*ast.SetExpression, error) {
 		Token: setToken,
 		Name:  varName,
 		Value: value,
+	}, nil
+}
+
+func (p *Parser) parseLoopExpression() (*ast.LoopExpression, error) {
+	loopExpToken, err := p.expectQuotedToken(token.LOOP)
+	if err != nil {
+		return nil, err
+	}
+
+	// skip to for
+	if err := p.expectTokens(
+		token.COLON,
+		token.LBRACE,
+		token.DOUBLE_QUOTE,
+		token.FOR,
+		token.DOUBLE_QUOTE,
+		token.COLON,
+	); err != nil {
+		return nil, err
+	}
+
+	// parse for
+	parsedIndex, err := p.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+	index, ok := parsedIndex.(*ast.Symbol)
+	if !ok {
+		return nil, fmt.Errorf("expected symbol, got %T", parsedIndex)
+	}
+
+	// skip to from
+	if err := p.expectTokens(
+		token.COMMA,
+		token.DOUBLE_QUOTE,
+		token.FROM,
+		token.DOUBLE_QUOTE,
+		token.COLON,
+	); err != nil {
+		return nil, err
+	}
+
+	// parse from
+	parsedFrom, err := p.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+	from, ok := parsedFrom.(*ast.IntegerLiteral)
+	if !ok {
+		return nil, fmt.Errorf("expected integer, got %T", parsedFrom)
+	}
+
+	// skip to to
+	if err := p.expectTokens(
+		token.COMMA,
+		token.DOUBLE_QUOTE,
+		token.TO,
+		token.DOUBLE_QUOTE,
+		token.COLON,
+	); err != nil {
+		return nil, err
+	}
+
+	// parse to
+	parsedTo, err := p.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+	to, ok := parsedTo.(*ast.IntegerLiteral)
+	if !ok {
+		return nil, fmt.Errorf("expected integer, got %T", parsedTo)
+	}
+
+	// skip to do
+	if err := p.expectTokens(
+		token.COMMA,
+		token.DOUBLE_QUOTE,
+		token.DO,
+		token.DOUBLE_QUOTE,
+		token.COLON,
+	); err != nil {
+		return nil, err
+	}
+
+	// parse do
+	body, err := p.parseExpression()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := p.expectTokens(token.RBRACE); err != nil {
+		return nil, err
+	}
+
+	return &ast.LoopExpression{
+		Token: loopExpToken,
+		Index: index,
+		From:  from,
+		To:    to,
+		Body:  body,
 	}, nil
 }
 

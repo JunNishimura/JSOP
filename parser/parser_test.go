@@ -672,6 +672,87 @@ func TestIfExpression(t *testing.T) {
 	}
 }
 
+func TestLoopExpression(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected *ast.LoopExpression
+	}{
+		{
+			name: "loop expression",
+			input: `
+				{
+					"loop": {
+						"for": "$i",
+						"from": 0,
+						"to": 10,
+						"do": {
+							"command": {
+								"symbol": "+",
+								"args": ["$i", 1]
+							}
+						}
+					}
+				}`,
+			expected: &ast.LoopExpression{
+				Token: token.Token{Type: token.LOOP, Literal: "loop"},
+				Index: &ast.Symbol{
+					Token: token.Token{Type: token.SYMBOL, Literal: "$i"},
+					Value: "$i",
+				},
+				From: &ast.IntegerLiteral{
+					Token: token.Token{Type: token.INT, Literal: "0"},
+					Value: 0,
+				},
+				To: &ast.IntegerLiteral{
+					Token: token.Token{Type: token.INT, Literal: "10"},
+					Value: 10,
+				},
+				Body: &ast.CommandObject{
+					Token: token.Token{Type: token.COMMAND, Literal: "command"},
+					Symbol: &ast.Symbol{
+						Token: token.Token{Type: token.PLUS, Literal: "+"},
+						Value: "+",
+					},
+					Args: &ast.Array{
+						Token: token.Token{Type: token.LBRACKET, Literal: "["},
+						Elements: []ast.Expression{
+							&ast.Symbol{
+								Token: token.Token{Type: token.SYMBOL, Literal: "$i"},
+								Value: "$i",
+							},
+							&ast.IntegerLiteral{
+								Token: token.Token{Type: token.INT, Literal: "1"},
+								Value: 1,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := New(l)
+
+			program, err := p.ParseProgram()
+			if err != nil {
+				t.Fatalf("ParseProgram() error: %v", err)
+			}
+
+			loopExp, ok := program.(*ast.LoopExpression)
+			if !ok {
+				t.Fatalf("exp not *ast.LoopExpression. got=%T", program)
+			}
+			if loopExp.String() != tt.expected.String() {
+				t.Fatalf("loopExp.String() not %q. got=%q", tt.expected.String(), loopExp.String())
+			}
+		})
+	}
+}
+
 func TestSetExpression(t *testing.T) {
 	tests := []struct {
 		name     string
