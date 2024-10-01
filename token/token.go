@@ -23,6 +23,11 @@ const (
 	SET       = "SET"
 	VAR       = "VAR"
 	VAL       = "VAL"
+	LOOP      = "LOOP"
+	FOR       = "FOR"
+	FROM      = "FROM"
+	TO        = "TO"
+	DO        = "DO"
 
 	SYMBOL = "SYMBOL"
 
@@ -63,6 +68,11 @@ var reservedWords = map[string]TokenType{
 	"set":     SET,
 	"var":     VAR,
 	"val":     VAL,
+	"loop":    LOOP,
+	"for":     FOR,
+	"from":    FROM,
+	"to":      TO,
+	"do":      DO,
 }
 
 func LookupStringTokenType(word string) TokenType {
