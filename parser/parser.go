@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/JunNishimura/jsop/ast"
 	"github.com/JunNishimura/jsop/lexer"
@@ -144,7 +145,7 @@ func (p *Parser) parseKey() (*ast.StringLiteral, error) {
 
 	return &ast.StringLiteral{
 		Token: keyToken,
-		Value: keyToken.Literal,
+		Value: strings.ToLower(keyToken.Literal),
 	}, nil
 }
 
