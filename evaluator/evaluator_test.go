@@ -462,6 +462,8 @@ func testArrayObject(t *testing.T, obj object.Object, expected []any) {
 			testIntegerObject(t, result.Elements[i], int64(e))
 		case bool:
 			testBooleanObject(t, result.Elements[i], e)
+		case []any:
+			testArrayObject(t, result.Elements[i], e)
 		}
 	}
 }
@@ -513,6 +515,25 @@ func TestArrayExpression(t *testing.T) {
 					"$x"
 				]`,
 			expected: []any{10, 10},
+		},
+		{
+			name: "access array element",
+			input: `
+				[
+					{
+						"set": {
+							"var": "$x",
+							"val": [10, 20, 30]
+						}
+					},
+					{
+						"command": {
+							"symbol": "at",
+							"args": ["$x", 1]
+						}
+					}
+				]`,
+			expected: []any{[]any{10, 20, 30}, 20},
 		},
 	}
 
