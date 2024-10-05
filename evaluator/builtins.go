@@ -252,4 +252,31 @@ var builtins = map[string]*object.Builtin{
 			return &object.Boolean{Value: !args.(*object.Boolean).Value}
 		},
 	},
+	"at": {
+		Fn: func(args object.Object) object.Object {
+			arrayArg, ok := args.(*object.Array)
+			if !ok {
+				return newError("argument to 'at' must be ARRAY, got %s", args.Type())
+			}
+			if len(arrayArg.Elements) != 2 {
+				return newError("number of arguments to 'at' must be 2, got %d", len(arrayArg.Elements))
+			}
+
+			variable, ok := arrayArg.Elements[0].(*object.Array)
+			if !ok {
+				return newError("first argument to 'at' must be ARRAY, got %s", arrayArg.Elements[0].Type())
+			}
+
+			index, ok := arrayArg.Elements[1].(*object.Integer)
+			if !ok {
+				return newError("second argument to 'at' must be INTEGER, got %s", arrayArg.Elements[1].Type())
+			}
+
+			if index.Value < 0 || index.Value >= int64(len(variable.Elements)) {
+				return newError("index out of range: %d", index.Value)
+			}
+
+			return variable.Elements[index.Value]
+		},
+	},
 }

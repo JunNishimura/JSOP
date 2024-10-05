@@ -51,7 +51,8 @@ func IsBuiltinSymbol(strLiteral string) bool {
 		strLiteral == "<" ||
 		strLiteral == ">=" ||
 		strLiteral == "<=" ||
-		strLiteral == "!" {
+		strLiteral == "!" ||
+		strLiteral == "at" {
 		return true
 	}
 
