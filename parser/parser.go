@@ -62,17 +62,6 @@ func (p *Parser) expectCurToken(t token.TokenType) error {
 	return fmt.Errorf("expected current token to be %s, got %s instead", t, p.curToken.Type)
 }
 
-func (p *Parser) expectTokens(tokens ...token.TokenType) error {
-	for _, t := range tokens {
-		if !p.curTokenIs(t) {
-			return fmt.Errorf("expected current token to be %s, got %s instead", t, p.curToken.Type)
-		}
-		p.nextToken()
-	}
-
-	return nil
-}
-
 func (p *Parser) expectQuotedToken(t token.TokenType) (token.Token, error) {
 	if err := p.expectCurToken(token.DOUBLE_QUOTE); err != nil {
 		return token.Token{}, err
@@ -98,331 +87,64 @@ func (p *Parser) parseExpression() (ast.Expression, error) {
 	return p.parseAtom()
 }
 
-func (p *Parser) parseObject() (obj ast.Expression, err error) {
-	if err := p.expectCurToken(token.LBRACE); err != nil {
-		return nil, err
+func (p *Parser) parseObject() (ast.Object, error) {
+	if !p.curTokenIs(token.LBRACE) {
+		return nil, fmt.Errorf("expected LBRACE, got %s instead", p.curToken.Type)
 	}
+	object := &ast.KeyValueObject{
+		Token: p.curToken,
+		KV:    []*ast.KeyValuePair{},
+	}
+	p.nextToken()
 
-	switch p.peekToken.Type {
-	case token.COMMAND:
-		obj, err = p.parseCommand()
-	case token.IF:
-		obj, err = p.parseIfExpression()
-	case token.SET:
-		obj, err = p.parseSetExpression()
-	case token.LOOP:
-		obj, err = p.parseLoopExpression()
-	default:
-		err = fmt.Errorf("unexpected token type %s", p.curToken.Type)
-	}
-	if err != nil {
-		return nil, err
+	// parse key value pairs
+	for {
+		kvPair, err := p.parseKeyValuePair()
+		if err != nil {
+			return nil, err
+		}
+		object.KV = append(object.KV, kvPair)
+
+		if !p.curTokenIs(token.COMMA) {
+			break
+		}
+		p.nextToken()
 	}
 
 	if err := p.expectCurToken(token.RBRACE); err != nil {
 		return nil, err
 	}
 
-	return obj, nil
+	return object, nil
 }
 
-func (p *Parser) parseCommand() (*ast.CommandObject, error) {
-	commandToken, err := p.expectQuotedToken(token.COMMAND)
+func (p *Parser) parseKeyValuePair() (*ast.KeyValuePair, error) {
+	key, err := p.parseKey()
 	if err != nil {
 		return nil, err
 	}
 
-	// skip to symbol
-	if err := p.expectTokens(
-		token.COLON,
-		token.LBRACE,
-		token.DOUBLE_QUOTE,
-		token.SYMBOLKEY,
-		token.DOUBLE_QUOTE,
-		token.COLON,
-	); err != nil {
+	if err := p.expectCurToken(token.COLON); err != nil {
 		return nil, err
 	}
 
-	// parse symbol
-	symbol, err := p.parseDoubleQuotedString()
-	if err != nil {
-		return nil, err
-	}
-
-	// when there are no args
-	if p.curTokenIs(token.RBRACE) {
-		p.nextToken()
-		return &ast.CommandObject{
-			Token:  commandToken,
-			Symbol: symbol,
-			Args:   nil,
-		}, nil
-	}
-
-	// skip to args
-	if err := p.expectTokens(
-		token.COMMA,
-		token.DOUBLE_QUOTE,
-		token.ARGS,
-		token.DOUBLE_QUOTE,
-		token.COLON,
-	); err != nil {
-		return nil, err
-	}
-
-	// parse args
-	args, err := p.parseExpression()
-	if err != nil {
-		return nil, err
-	}
-
-	// skip to end of object
-	if err := p.expectTokens(token.RBRACE); err != nil {
-		return nil, err
-	}
-
-	return &ast.CommandObject{
-		Token:  commandToken,
-		Symbol: symbol,
-		Args:   args,
-	}, nil
-}
-
-func (p *Parser) parseIfExpression() (*ast.IfExpression, error) {
-	ifToken, err := p.expectQuotedToken(token.IF)
-	if err != nil {
-		return nil, err
-	}
-
-	// skip to condition
-	if err := p.expectTokens(
-		token.COLON,
-		token.LBRACE,
-		token.DOUBLE_QUOTE,
-		token.COND,
-		token.DOUBLE_QUOTE,
-		token.COLON,
-	); err != nil {
-		return nil, err
-	}
-
-	// parse condition
-	condition, err := p.parseExpression()
-	if err != nil {
-		return nil, err
-	}
-
-	// skip to consequence
-	if err := p.expectTokens(
-		token.COMMA,
-		token.DOUBLE_QUOTE,
-		token.CONSEQ,
-		token.DOUBLE_QUOTE,
-		token.COLON,
-	); err != nil {
-		return nil, err
-	}
-
-	// parse consequence
-	consequence, err := p.parseExpression()
-	if err != nil {
-		return nil, err
-	}
-
-	// parse alternative
-	if p.curTokenIs(token.COMMA) {
-		if err := p.expectTokens(
-			token.COMMA,
-			token.DOUBLE_QUOTE,
-			token.ALT,
-			token.DOUBLE_QUOTE,
-			token.COLON); err != nil {
-			return nil, err
-		}
-
-		alternative, err := p.parseExpression()
-		if err != nil {
-			return nil, err
-		}
-
-		if err := p.expectTokens(token.RBRACE); err != nil {
-			return nil, err
-		}
-
-		return &ast.IfExpression{
-			Token:       ifToken,
-			Condition:   condition,
-			Consequence: consequence,
-			Alternative: alternative,
-		}, nil
-	}
-
-	if err := p.expectTokens(token.RBRACE); err != nil {
-		return nil, err
-	}
-
-	return &ast.IfExpression{
-		Token:       ifToken,
-		Condition:   condition,
-		Consequence: consequence,
-		Alternative: nil,
-	}, nil
-}
-
-func (p *Parser) parseSetExpression() (*ast.SetExpression, error) {
-	setToken, err := p.expectQuotedToken(token.SET)
-	if err != nil {
-		return nil, err
-	}
-
-	// skip to var
-	if err := p.expectTokens(
-		token.COLON,
-		token.LBRACE,
-		token.DOUBLE_QUOTE,
-		token.VAR,
-		token.DOUBLE_QUOTE,
-		token.COLON,
-	); err != nil {
-		return nil, err
-	}
-
-	// parse var
-	variable, err := p.parseExpression()
-	if err != nil {
-		return nil, err
-	}
-	varName, ok := variable.(*ast.Symbol)
-	if !ok {
-		return nil, fmt.Errorf("expected symbol, got %T", variable)
-	}
-
-	// skip to val
-	if err := p.expectTokens(
-		token.COMMA,
-		token.DOUBLE_QUOTE,
-		token.VAL,
-		token.DOUBLE_QUOTE,
-		token.COLON,
-	); err != nil {
-		return nil, err
-	}
-
-	// parse val
 	value, err := p.parseExpression()
 	if err != nil {
 		return nil, err
 	}
 
-	if err := p.expectTokens(token.RBRACE); err != nil {
-		return nil, err
-	}
-
-	return &ast.SetExpression{
-		Token: setToken,
-		Name:  varName,
-		Value: value,
-	}, nil
+	return &ast.KeyValuePair{Key: key, Value: value}, nil
 }
 
-func (p *Parser) parseLoopExpression() (*ast.LoopExpression, error) {
-	loopExpToken, err := p.expectQuotedToken(token.LOOP)
+func (p *Parser) parseKey() (*ast.StringLiteral, error) {
+	keyToken, err := p.expectQuotedToken(token.STRING)
 	if err != nil {
 		return nil, err
 	}
 
-	// skip to for
-	if err := p.expectTokens(
-		token.COLON,
-		token.LBRACE,
-		token.DOUBLE_QUOTE,
-		token.FOR,
-		token.DOUBLE_QUOTE,
-		token.COLON,
-	); err != nil {
-		return nil, err
-	}
-
-	// parse for
-	parsedIndex, err := p.parseExpression()
-	if err != nil {
-		return nil, err
-	}
-	index, ok := parsedIndex.(*ast.Symbol)
-	if !ok {
-		return nil, fmt.Errorf("expected symbol, got %T", parsedIndex)
-	}
-
-	// skip to from
-	if err := p.expectTokens(
-		token.COMMA,
-		token.DOUBLE_QUOTE,
-		token.FROM,
-		token.DOUBLE_QUOTE,
-		token.COLON,
-	); err != nil {
-		return nil, err
-	}
-
-	// parse from
-	parsedFrom, err := p.parseExpression()
-	if err != nil {
-		return nil, err
-	}
-	from, ok := parsedFrom.(*ast.IntegerLiteral)
-	if !ok {
-		return nil, fmt.Errorf("expected integer, got %T", parsedFrom)
-	}
-
-	// skip to to
-	if err := p.expectTokens(
-		token.COMMA,
-		token.DOUBLE_QUOTE,
-		token.TO,
-		token.DOUBLE_QUOTE,
-		token.COLON,
-	); err != nil {
-		return nil, err
-	}
-
-	// parse to
-	parsedTo, err := p.parseExpression()
-	if err != nil {
-		return nil, err
-	}
-	to, ok := parsedTo.(*ast.IntegerLiteral)
-	if !ok {
-		return nil, fmt.Errorf("expected integer, got %T", parsedTo)
-	}
-
-	// skip to do
-	if err := p.expectTokens(
-		token.COMMA,
-		token.DOUBLE_QUOTE,
-		token.DO,
-		token.DOUBLE_QUOTE,
-		token.COLON,
-	); err != nil {
-		return nil, err
-	}
-
-	// parse do
-	body, err := p.parseExpression()
-	if err != nil {
-		return nil, err
-	}
-
-	if err := p.expectTokens(token.RBRACE); err != nil {
-		return nil, err
-	}
-
-	return &ast.LoopExpression{
-		Token: loopExpToken,
-		Index: index,
-		From:  from,
-		To:    to,
-		Body:  body,
+	return &ast.StringLiteral{
+		Token: keyToken,
+		Value: keyToken.Literal,
 	}, nil
 }
 
@@ -505,25 +227,12 @@ func (p *Parser) parseDoubleQuotedString() (ast.Expression, error) {
 
 	var res ast.Expression
 
-	if p.curTokenIs(token.STRING) {
-		res = &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}
-	} else if p.curTokenIs(token.SYMBOL) ||
-		p.curTokenIs(token.PLUS) ||
-		p.curTokenIs(token.MINUS) ||
-		p.curTokenIs(token.ASTERISK) ||
-		p.curTokenIs(token.SLASH) ||
-		p.curTokenIs(token.LT) ||
-		p.curTokenIs(token.LTE) ||
-		p.curTokenIs(token.GT) ||
-		p.curTokenIs(token.GTE) ||
-		p.curTokenIs(token.EQ) ||
-		p.curTokenIs(token.NOT_EQ) ||
-		p.curTokenIs(token.EXCLAM) {
+	if token.IsBuiltinSymbol(p.curToken.Literal) ||
+		p.curToken.Literal[0] == '$' {
 		res = &ast.Symbol{Token: p.curToken, Value: p.curToken.Literal}
 	} else {
-		return nil, fmt.Errorf("unexpected token type %s", p.curToken.Type)
+		res = &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}
 	}
-
 	p.nextToken()
 
 	if err := p.expectCurToken(token.DOUBLE_QUOTE); err != nil {
@@ -537,15 +246,16 @@ func (p *Parser) parseArray() (*ast.Array, error) {
 	if !p.curTokenIs(token.LBRACKET) {
 		return nil, fmt.Errorf("expected LBRACKET, got %s instead", p.curToken.Type)
 	}
-	arrayToken := p.curToken
+	array := &ast.Array{
+		Token:    p.curToken,
+		Elements: []ast.Expression{},
+	}
 	p.nextToken()
-
-	elements := []ast.Expression{}
 
 	// empty array
 	if p.curTokenIs(token.RBRACKET) {
 		p.nextToken()
-		return &ast.Array{Token: arrayToken, Elements: elements}, nil
+		return array, nil
 	}
 
 	for {
@@ -553,17 +263,17 @@ func (p *Parser) parseArray() (*ast.Array, error) {
 		if err != nil {
 			return nil, err
 		}
-		elements = append(elements, element)
+		array.Elements = append(array.Elements, element)
 
-		if p.curTokenIs(token.COMMA) {
-			p.nextToken()
-		} else {
-			if err := p.expectCurToken(token.RBRACKET); err != nil {
-				return nil, err
-			}
+		if !p.curTokenIs(token.COMMA) {
 			break
 		}
+		p.nextToken()
 	}
 
-	return &ast.Array{Token: arrayToken, Elements: elements}, nil
+	if err := p.expectCurToken(token.RBRACKET); err != nil {
+		return nil, err
+	}
+
+	return array, nil
 }

@@ -11,39 +11,12 @@ const (
 	ILLEGAL = "ILLEGAL"
 	EOF     = "EOF"
 
-	INT       = "INT"
-	STRING    = "STRING"
-	SYMBOLKEY = "SYMBOL_KEY"
-	COMMAND   = "COMMAND"
-	ARGS      = "ARGS"
-	IF        = "IF"
-	COND      = "COND"
-	CONSEQ    = "CONSEQ"
-	ALT       = "ALT"
-	SET       = "SET"
-	VAR       = "VAR"
-	VAL       = "VAL"
-	LOOP      = "LOOP"
-	FOR       = "FOR"
-	FROM      = "FROM"
-	TO        = "TO"
-	DO        = "DO"
+	INT    = "INT"
+	STRING = "STRING"
 
-	SYMBOL = "SYMBOL"
+	MINUS = "-"
 
-	PLUS     = "+"
-	MINUS    = "-"
-	ASTERISK = "*"
-	SLASH    = "/"
-	LT       = "<"
-	LTE      = "<="
-	GT       = ">"
-	GTE      = ">="
-	EQ       = "=="
-	NOT_EQ   = "!="
-	EXCLAM   = "!"
-
-	TRUE  = "true"
+	TRUE  = "TRUE"
 	FALSE = "false"
 
 	LBRACE       = "{"
@@ -56,23 +29,8 @@ const (
 )
 
 var reservedWords = map[string]TokenType{
-	"command": COMMAND,
-	"symbol":  SYMBOLKEY,
-	"args":    ARGS,
-	"if":      IF,
-	"cond":    COND,
-	"conseq":  CONSEQ,
-	"alt":     ALT,
-	"true":    TRUE,
-	"false":   FALSE,
-	"set":     SET,
-	"var":     VAR,
-	"val":     VAL,
-	"loop":    LOOP,
-	"for":     FOR,
-	"from":    FROM,
-	"to":      TO,
-	"do":      DO,
+	"true":  TRUE,
+	"false": FALSE,
 }
 
 func LookupStringTokenType(word string) TokenType {
@@ -80,4 +38,22 @@ func LookupStringTokenType(word string) TokenType {
 		return tok
 	}
 	return STRING
+}
+
+func IsBuiltinSymbol(strLiteral string) bool {
+	if strLiteral == "+" ||
+		strLiteral == "-" ||
+		strLiteral == "*" ||
+		strLiteral == "/" ||
+		strLiteral == "==" ||
+		strLiteral == "!=" ||
+		strLiteral == ">" ||
+		strLiteral == "<" ||
+		strLiteral == ">=" ||
+		strLiteral == "<=" ||
+		strLiteral == "!" {
+		return true
+	}
+
+	return false
 }
