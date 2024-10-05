@@ -29,18 +29,8 @@ func Eval(exp ast.Expression, env *object.Environment) object.Object {
 		return evalPrefixAtom(expt.Operator, right)
 	case *ast.Symbol:
 		return evalSymbol(expt, env)
-	case *ast.CommandObject:
-		return evalCommandObject(expt, env)
-	case *ast.IfExpression:
-		return evalIfExpression(expt, env)
-	case *ast.SetExpression:
-		value := Eval(expt.Value, env)
-		if isError(value) {
-			return value
-		}
-		return env.Set(expt.Name.Value, value)
-	case *ast.LoopExpression:
-		return evalLoopExpression(expt, env)
+	case *ast.KeyValueObject:
+		return evalKeyValueObject(expt, env)
 	default:
 		return newError("unknown expression type: %T", exp)
 	}
@@ -112,17 +102,44 @@ func evalSymbol(symbol *ast.Symbol, env *object.Environment) object.Object {
 	return newError("symbol not found: %s", symbol.Value)
 }
 
-func evalCommandObject(command *ast.CommandObject, env *object.Environment) object.Object {
-	symbol := Eval(command.Symbol, env)
+func evalKeyValueObject(kv *ast.KeyValueObject, env *object.Environment) object.Object {
+	for key, value := range kv.KVPairs() {
+		switch key {
+		case "command":
+			return evalCommandObject(value, env)
+		case "if":
+			return evalIfExpression(value, env)
+		case "set":
+			return evalSetExpression(value, env)
+		case "loop":
+			return evalLoopExpression(value, env)
+		}
+	}
+
+	return newError("unknown key for object: %s", kv)
+}
+
+func evalCommandObject(exp ast.Expression, env *object.Environment) object.Object {
+	keyValueObj, ok := exp.(*ast.KeyValueObject)
+	if !ok {
+		return newError("invalid value for command: %s", exp)
+	}
+	kvPairs := keyValueObj.KVPairs()
+
+	symbolValue, ok := kvPairs["symbol"]
+	if !ok {
+		return newError("symbol key not found in command: %s", keyValueObj)
+	}
+	symbol := Eval(symbolValue, env)
 	if isError(symbol) {
 		return symbol
 	}
 
-	if command.Args == nil {
+	argsValue, ok := kvPairs["args"]
+	if !ok {
 		return applyFunction(symbol, Null)
 	}
-
-	args := Eval(command.Args, env)
+	args := Eval(argsValue, env)
 	if isError(args) {
 		return args
 	}
@@ -139,19 +156,37 @@ func applyFunction(function object.Object, args object.Object) object.Object {
 	}
 }
 
-func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Object {
-	condition := Eval(ie.Condition, env)
+func evalIfExpression(exp ast.Expression, env *object.Environment) object.Object {
+	keyValueObj, ok := exp.(*ast.KeyValueObject)
+	if !ok {
+		return newError("invalid value for if: %s", exp)
+	}
+	kvPairs := keyValueObj.KVPairs()
+
+	conditionValue, ok := kvPairs["cond"]
+	if !ok {
+		return newError("cond key not found in if: %s", keyValueObj)
+	}
+	condition := Eval(conditionValue, env)
 	if isError(condition) {
 		return condition
 	}
 
-	if isTruthy(condition) {
-		return Eval(ie.Consequence, env)
-	} else if ie.Alternative != nil {
-		return Eval(ie.Alternative, env)
-	} else {
-		return False
+	consequenceValue, ok := kvPairs["conseq"]
+	if !ok {
+		return newError("consequence key not found in if: %s", keyValueObj)
 	}
+
+	if isTruthy(condition) {
+		return Eval(consequenceValue, env)
+	}
+
+	alternativeValue, ok := kvPairs["alt"]
+	if !ok {
+		return Null
+	}
+
+	return Eval(alternativeValue, env)
 }
 
 func isTruthy(obj object.Object) bool {
@@ -165,30 +200,86 @@ func isTruthy(obj object.Object) bool {
 	}
 }
 
-func evalLoopExpression(le *ast.LoopExpression, env *object.Environment) object.Object {
-	from := Eval(le.From, env)
+func evalSetExpression(exp ast.Expression, env *object.Environment) object.Object {
+	keyValueObj, ok := exp.(*ast.KeyValueObject)
+	if !ok {
+		return newError("invalid value for set: %s", exp)
+	}
+	kvPairs := keyValueObj.KVPairs()
+
+	varValue, ok := kvPairs["var"]
+	if !ok {
+		return newError("var key not found in set: %s", keyValueObj)
+	}
+	variable, ok := varValue.(*ast.Symbol)
+	if !ok {
+		return newError("var key must be SYMBOL, got %s", varValue)
+	}
+
+	valueValue, ok := kvPairs["val"]
+	if !ok {
+		return newError("value key not found in set: %s", keyValueObj)
+	}
+	value := Eval(valueValue, env)
+	if isError(value) {
+		return value
+	}
+
+	return env.Set(variable.Value, value)
+}
+
+func evalLoopExpression(exp ast.Expression, env *object.Environment) object.Object {
+	keyValueObj, ok := exp.(*ast.KeyValueObject)
+	if !ok {
+		return newError("invalid value for loop: %s", exp)
+	}
+	kvPairs := keyValueObj.KVPairs()
+
+	forValue, ok := kvPairs["for"]
+	if !ok {
+		return newError("for key not found in loop: %s", keyValueObj)
+	}
+	loopSymbol, ok := forValue.(*ast.Symbol)
+	if !ok {
+		return newError("for key must be SYMBOL, got %s", forValue)
+	}
+
+	fromValue, ok := kvPairs["from"]
+	if !ok {
+		return newError("from key not found in loop: %s", keyValueObj)
+	}
+	from := Eval(fromValue, env)
 	if isError(from) {
 		return from
 	}
-	fromValue, ok := from.(*object.Integer)
+	fromInt, ok := from.(*object.Integer)
 	if !ok {
 		return newError("from value must be INTEGER, got %s", from.Type())
 	}
 
-	to := Eval(le.To, env)
+	toValue, ok := kvPairs["to"]
+	if !ok {
+		return newError("to key not found in loop: %s", keyValueObj)
+	}
+	to := Eval(toValue, env)
 	if isError(to) {
 		return to
 	}
-	toValue, ok := to.(*object.Integer)
+	toInt, ok := to.(*object.Integer)
 	if !ok {
 		return newError("to value must be INTEGER, got %s", to.Type())
 	}
 
+	doValue, ok := kvPairs["do"]
+	if !ok {
+		return newError("do key not found in loop: %s", keyValueObj)
+	}
+
 	var result object.Object
 
-	for i := fromValue.Value; i < toValue.Value; i++ {
-		env.Set(le.Index.Value, &object.Integer{Value: i})
-		evaluated := Eval(le.Body, env)
+	for i := fromInt.Value; i < toInt.Value; i++ {
+		env.Set(loopSymbol.Value, &object.Integer{Value: i})
+		evaluated := Eval(doValue, env)
 		if isError(evaluated) {
 			return evaluated
 		}
