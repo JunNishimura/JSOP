@@ -55,7 +55,5 @@ func IsBuiltinSymbol(strLiteral string) bool {
 		return true
 	}
 
-	// 文字列の先頭一文字目が$か判定
-
 	return false
 }

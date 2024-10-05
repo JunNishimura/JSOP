@@ -500,20 +500,20 @@ func TestArrayExpression(t *testing.T) {
 				]`,
 			expected: []any{3, -1},
 		},
-		// {
-		// 	name: "array expression with set expression",
-		// 	input: `
-		// 		[
-		// 			{
-		// 				"set": {
-		// 					"var": "$x",
-		// 					"val": 10
-		// 				}
-		// 			},
-		// 			"$x"
-		// 		]`,
-		// 	expected: []any{10, 10},
-		// },
+		{
+			name: "array expression with set expression",
+			input: `
+				[
+					{
+						"set": {
+							"var": "$x",
+							"val": 10
+						}
+					},
+					"$x"
+				]`,
+			expected: []any{10, 10},
+		},
 	}
 
 	for _, tt := range tests {
