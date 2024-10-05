@@ -45,53 +45,12 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.COLON, l.curChar)
 	case ',':
 		tok = newToken(token.COMMA, l.curChar)
-	case '+':
-		tok = newToken(token.PLUS, l.curChar)
 	case '-':
-		tok = newToken(token.MINUS, l.curChar)
-	case '*':
-		tok = newToken(token.ASTERISK, l.curChar)
-	case '/':
-		tok = newToken(token.SLASH, l.curChar)
-	case '=':
-		if l.peekChar() == '=' {
-			ch := l.curChar
-			l.readChar()
-			literal := string(ch) + string(l.curChar)
-			tok = token.Token{Type: token.EQ, Literal: literal}
-		}
-	case '!':
-		if l.peekChar() == '=' {
-			ch := l.curChar
-			l.readChar()
-			literal := string(ch) + string(l.curChar)
-			tok = token.Token{Type: token.NOT_EQ, Literal: literal}
+		if l.peekChar() == '"' {
+			tok = newToken(token.STRING, l.curChar)
 		} else {
-			tok = newToken(token.EXCLAM, l.curChar)
+			tok = newToken(token.MINUS, l.curChar)
 		}
-	case '<':
-		if l.peekChar() == '=' {
-			ch := l.curChar
-			l.readChar()
-			literal := string(ch) + string(l.curChar)
-			tok = token.Token{Type: token.LTE, Literal: literal}
-		} else {
-			tok = newToken(token.LT, l.curChar)
-		}
-	case '>':
-		if l.peekChar() == '=' {
-			ch := l.curChar
-			l.readChar()
-			literal := string(ch) + string(l.curChar)
-			tok = token.Token{Type: token.GTE, Literal: literal}
-		} else {
-			tok = newToken(token.GT, l.curChar)
-		}
-	case '$':
-		ch := l.curChar
-		l.readChar()
-		literal := string(ch) + l.readString()
-		return token.Token{Type: token.SYMBOL, Literal: literal}
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
@@ -100,7 +59,7 @@ func (l *Lexer) NextToken() token.Token {
 			tok.Type = token.INT
 			tok.Literal = l.readNumber()
 			return tok
-		} else if isLetter(l.curChar) {
+		} else if isLetter(l.curChar) || isSpecialChar(l.curChar) {
 			tok.Literal = l.readString()
 			tok.Type = token.LookupStringTokenType(tok.Literal)
 			return tok
@@ -130,6 +89,18 @@ func isLetter(ch byte) bool {
 	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z'
 }
 
+func isSpecialChar(ch byte) bool {
+	return ch == '=' ||
+		ch == '+' ||
+		ch == '-' ||
+		ch == '*' ||
+		ch == '/' ||
+		ch == '<' ||
+		ch == '>' ||
+		ch == '!' ||
+		ch == '$'
+}
+
 func (l *Lexer) readNumber() string {
 	startPos := l.curPos
 	for isDigit(l.curChar) {
@@ -140,7 +111,7 @@ func (l *Lexer) readNumber() string {
 
 func (l *Lexer) readString() string {
 	startPos := l.curPos
-	for isLetter(l.curChar) {
+	for isLetter(l.curChar) || isSpecialChar(l.curChar) {
 		l.readChar()
 	}
 	return l.input[startPos:l.curPos]
