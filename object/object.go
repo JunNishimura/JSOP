@@ -3,15 +3,18 @@ package object
 import (
 	"bytes"
 	"fmt"
+
+	"github.com/JunNishimura/jsop/ast"
 )
 
 const (
-	ERROR_OBJ   = "ERROR"
-	INTEGER_OBJ = "INTEGER"
-	BOOLEAN_OBJ = "BOOLEAN"
-	ARRAY_OBJ   = "ARRAY"
-	NULL_OBJ    = "NULL"
-	BUILTIN_OBJ = "BUILTIN"
+	ERROR_OBJ    = "ERROR"
+	INTEGER_OBJ  = "INTEGER"
+	BOOLEAN_OBJ  = "BOOLEAN"
+	ARRAY_OBJ    = "ARRAY"
+	NULL_OBJ     = "NULL"
+	FUNCTION_OBJ = "FUNCTION"
+	BUILTIN_OBJ  = "BUILTIN"
 )
 
 type ObjectType string
@@ -66,6 +69,30 @@ type Error struct {
 
 func (e *Error) Type() ObjectType { return ERROR_OBJ }
 func (e *Error) Inspect() string  { return "ERROR: " + e.Message }
+
+type Function struct {
+	Parameters []*ast.Symbol
+	Body       ast.Expression
+	Env        *Environment
+}
+
+func (f *Function) Type() ObjectType { return FUNCTION_OBJ }
+func (f *Function) Inspect() string {
+	var out bytes.Buffer
+
+	out.WriteString("fn(")
+	for i, p := range f.Parameters {
+		if i > 0 {
+			out.WriteString(", ")
+		}
+		out.WriteString(p.Value)
+	}
+	out.WriteString(") {\n")
+	out.WriteString(f.Body.String())
+	out.WriteString("\n}")
+
+	return out.String()
+}
 
 type BuiltinFunction func(args Object) Object
 
