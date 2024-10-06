@@ -113,6 +113,8 @@ func evalKeyValueObject(kv *ast.KeyValueObject, env *object.Environment) object.
 			return evalSetExpression(value, env)
 		case "loop":
 			return evalLoopExpression(value, env)
+		case "lambda":
+			return evalLambdaExpression(value, env)
 		}
 	}
 
@@ -147,10 +149,50 @@ func evalCommandObject(exp ast.Expression, env *object.Environment) object.Objec
 	return applyFunction(symbol, args)
 }
 
+func extendFunctionEnv(fn *object.Function, args object.Object) (*object.Environment, error) {
+	switch args := args.(type) {
+	case *object.Array:
+		if len(fn.Parameters) != len(args.Elements) {
+			return nil, fmt.Errorf("wrong number of arguments. want=%d, got=%d", len(fn.Parameters), len(args.Elements))
+		}
+
+		extendedEnv := object.NewEnclosedEnvironment(fn.Env)
+		for i, param := range fn.Parameters {
+			extendedEnv.Set(param.Value, args.Elements[i])
+		}
+
+		return extendedEnv, nil
+	case *object.Integer, *object.Boolean:
+		if len(fn.Parameters) != 1 {
+			return nil, fmt.Errorf("wrong number of arguments. want=%d, got=1", len(fn.Parameters))
+		}
+
+		extendedEnv := object.NewEnclosedEnvironment(fn.Env)
+		extendedEnv.Set(fn.Parameters[0].Value, args)
+
+		return extendedEnv, nil
+	case *object.Null:
+		if len(fn.Parameters) != 0 {
+			return nil, fmt.Errorf("wrong number of arguments. want=%d, got=0", len(fn.Parameters))
+		}
+
+		return object.NewEnclosedEnvironment(fn.Env), nil
+	default:
+		return nil, fmt.Errorf("unhandled argument type: %s", args.Type())
+	}
+}
+
 func applyFunction(function object.Object, args object.Object) object.Object {
 	switch funcType := function.(type) {
 	case *object.Builtin:
 		return funcType.Fn(args)
+	case *object.Function:
+		extendedEnv, err := extendFunctionEnv(funcType, args)
+		if err != nil {
+			return newError("failed to apply function: %s", err)
+		}
+
+		return Eval(funcType.Body, extendedEnv)
 	default:
 		return newError("not a function: %s", function.Type())
 	}
@@ -288,4 +330,43 @@ func evalLoopExpression(exp ast.Expression, env *object.Environment) object.Obje
 	}
 
 	return result
+}
+
+func evalLambdaExpression(exp ast.Expression, env *object.Environment) object.Object {
+	keyValueObj, ok := exp.(*ast.KeyValueObject)
+	if !ok {
+		return newError("invalid value for defun: %s", exp)
+	}
+	kvPairs := keyValueObj.KVPairs()
+
+	params := make([]*ast.Symbol, 0)
+	paramsValue, ok := kvPairs["params"]
+	if ok {
+		if paramsArray, ok := paramsValue.(*ast.Array); ok {
+			for _, param := range paramsArray.Elements {
+				paramSymbol, ok := param.(*ast.Symbol)
+				if !ok {
+					return newError("params key must be ARRAY of SYMBOL, got %s", param)
+				}
+				params = append(params, paramSymbol)
+			}
+		} else {
+			paramsSymbol, ok := paramsValue.(*ast.Symbol)
+			if !ok {
+				return newError("params key must be ARRAY or SYMBOL, got %s", paramsValue)
+			}
+			params = append(params, paramsSymbol)
+		}
+	}
+
+	body, ok := kvPairs["body"]
+	if !ok {
+		return newError("body key not found in defun: %s", keyValueObj)
+	}
+
+	return &object.Function{
+		Parameters: params,
+		Body:       body,
+		Env:        env,
+	}
 }

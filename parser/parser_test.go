@@ -1416,6 +1416,263 @@ func TestSetExpression(t *testing.T) {
 	}
 }
 
+func TestLambdaExpression(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected ast.Object
+	}{
+		{
+			name: "lambda expression without parameters",
+			input: `
+				{
+					"lambda": {
+						"body": 1
+					}
+				}`,
+			expected: &ast.KeyValueObject{
+				Token: token.Token{Type: token.LBRACE, Literal: "{"},
+				KV: []*ast.KeyValuePair{
+					{
+						Key: &ast.StringLiteral{
+							Token: token.Token{Type: token.STRING, Literal: "lambda"},
+							Value: "lambda",
+						},
+						Value: &ast.KeyValueObject{
+							Token: token.Token{Type: token.LBRACE, Literal: "{"},
+							KV: []*ast.KeyValuePair{
+								{
+									Key: &ast.StringLiteral{
+										Token: token.Token{Type: token.STRING, Literal: "body"},
+										Value: "body",
+									},
+									Value: &ast.IntegerLiteral{
+										Token: token.Token{Type: token.INT, Literal: "1"},
+										Value: 1,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "lambda expression with 1 argument",
+			input: `
+				{
+					"lambda": {
+						"params": "$x",
+						"body": {
+							"command": {
+								"symbol": "+",
+								"args": ["$x", 1]
+							}
+						}
+					}
+				}`,
+			expected: &ast.KeyValueObject{
+				Token: token.Token{Type: token.LBRACE, Literal: "{"},
+				KV: []*ast.KeyValuePair{
+					{
+						Key: &ast.StringLiteral{
+							Token: token.Token{Type: token.STRING, Literal: "lambda"},
+							Value: "lambda",
+						},
+						Value: &ast.KeyValueObject{
+							Token: token.Token{Type: token.LBRACE, Literal: "{"},
+							KV: []*ast.KeyValuePair{
+								{
+									Key: &ast.StringLiteral{
+										Token: token.Token{Type: token.STRING, Literal: "params"},
+										Value: "params",
+									},
+									Value: &ast.Symbol{
+										Token: token.Token{Type: token.STRING, Literal: "$x"},
+										Value: "$x",
+									},
+								},
+								{
+									Key: &ast.StringLiteral{
+										Token: token.Token{Type: token.STRING, Literal: "body"},
+										Value: "body",
+									},
+									Value: &ast.KeyValueObject{
+										Token: token.Token{Type: token.LBRACE, Literal: "{"},
+										KV: []*ast.KeyValuePair{
+											{
+												Key: &ast.StringLiteral{
+													Token: token.Token{Type: token.STRING, Literal: "command"},
+													Value: "command",
+												},
+												Value: &ast.KeyValueObject{
+													Token: token.Token{Type: token.LBRACE, Literal: "{"},
+													KV: []*ast.KeyValuePair{
+														{
+															Key: &ast.StringLiteral{
+																Token: token.Token{Type: token.STRING, Literal: "symbol"},
+																Value: "symbol",
+															},
+															Value: &ast.Symbol{
+																Token: token.Token{Type: token.STRING, Literal: "+"},
+																Value: "+",
+															},
+														},
+														{
+															Key: &ast.StringLiteral{
+																Token: token.Token{Type: token.STRING, Literal: "args"},
+																Value: "args",
+															},
+															Value: &ast.Array{
+																Token: token.Token{Type: token.LBRACKET, Literal: "["},
+																Elements: []ast.Expression{
+																	&ast.Symbol{
+																		Token: token.Token{Type: token.STRING, Literal: "$x"},
+																		Value: "$x",
+																	},
+																	&ast.IntegerLiteral{
+																		Token: token.Token{Type: token.INT, Literal: "1"},
+																		Value: 1,
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "lambda expression with multiple argument",
+			input: `
+				{
+					"lambda": {
+						"params": ["$x", "$y"],
+						"body": {
+							"command": {
+								"symbol": "+",
+								"args": ["$x", "$y"]
+							}
+						}
+					}
+				}`,
+			expected: &ast.KeyValueObject{
+				Token: token.Token{Type: token.LBRACE, Literal: "{"},
+				KV: []*ast.KeyValuePair{
+					{
+						Key: &ast.StringLiteral{
+							Token: token.Token{Type: token.STRING, Literal: "lambda"},
+							Value: "lambda",
+						},
+						Value: &ast.KeyValueObject{
+							Token: token.Token{Type: token.LBRACE, Literal: "{"},
+							KV: []*ast.KeyValuePair{
+								{
+									Key: &ast.StringLiteral{
+										Token: token.Token{Type: token.STRING, Literal: "params"},
+										Value: "params",
+									},
+									Value: &ast.Array{
+										Token: token.Token{Type: token.LBRACKET, Literal: "["},
+										Elements: []ast.Expression{
+											&ast.Symbol{
+												Token: token.Token{Type: token.STRING, Literal: "$x"},
+												Value: "$x",
+											},
+											&ast.Symbol{
+												Token: token.Token{Type: token.STRING, Literal: "$y"},
+												Value: "$y",
+											},
+										},
+									},
+								},
+								{
+									Key: &ast.StringLiteral{
+										Token: token.Token{Type: token.STRING, Literal: "body"},
+										Value: "body",
+									},
+									Value: &ast.KeyValueObject{
+										Token: token.Token{Type: token.LBRACE, Literal: "{"},
+										KV: []*ast.KeyValuePair{
+											{
+												Key: &ast.StringLiteral{
+													Token: token.Token{Type: token.STRING, Literal: "command"},
+													Value: "command",
+												},
+												Value: &ast.KeyValueObject{
+													Token: token.Token{Type: token.LBRACE, Literal: "{"},
+													KV: []*ast.KeyValuePair{
+														{
+															Key: &ast.StringLiteral{
+																Token: token.Token{Type: token.STRING, Literal: "symbol"},
+																Value: "symbol",
+															},
+															Value: &ast.Symbol{
+																Token: token.Token{Type: token.STRING, Literal: "+"},
+																Value: "+",
+															},
+														},
+														{
+															Key: &ast.StringLiteral{
+																Token: token.Token{Type: token.STRING, Literal: "args"},
+																Value: "args",
+															},
+															Value: &ast.Array{
+																Token: token.Token{Type: token.LBRACKET, Literal: "["},
+																Elements: []ast.Expression{
+																	&ast.Symbol{
+																		Token: token.Token{Type: token.STRING, Literal: "$x"},
+																		Value: "$x",
+																	},
+																	&ast.Symbol{
+																		Token: token.Token{Type: token.STRING, Literal: "$y"},
+																		Value: "$y",
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := New(l)
+
+			program, err := p.ParseProgram()
+			if err != nil {
+				t.Fatalf("ParseProgram() error: %v", err)
+			}
+
+			kvObject, ok := program.(*ast.KeyValueObject)
+			if !ok {
+				t.Fatalf("exp not *ast.KeyValueObject. got=%T", program)
+			}
+			if kvObject.String() != tt.expected.String() {
+				t.Fatalf("kvObject.String() not %q. got=%q", tt.expected.String(), kvObject.String())
+			}
+		})
+	}
+}
+
 func TestPrograms(t *testing.T) {
 	tests := []struct {
 		name     string
