@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import "github.com/JunNishimura/jsop/cmd"
 
 func main() {
-	fmt.Println("Hello, World!")
+	if err := cmd.Run(); err != nil {
+		panic(err)
+	}
 }
