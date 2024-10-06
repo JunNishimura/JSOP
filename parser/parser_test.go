@@ -1119,7 +1119,7 @@ func TestLoopExpression(t *testing.T) {
 					"loop": {
 						"for": "$i",
 						"from": 0,
-						"to": 10,
+						"until": 10,
 						"do": {
 							"command": {
 								"symbol": "+",
@@ -1161,8 +1161,8 @@ func TestLoopExpression(t *testing.T) {
 								},
 								{
 									Key: &ast.StringLiteral{
-										Token: token.Token{Type: token.STRING, Literal: "to"},
-										Value: "to",
+										Token: token.Token{Type: token.STRING, Literal: "until"},
+										Value: "until",
 									},
 									Value: &ast.IntegerLiteral{
 										Token: token.Token{Type: token.INT, Literal: "10"},

@@ -642,7 +642,7 @@ func TestSingleProgram(t *testing.T) {
 					"loop": {
 						"for": "$i",
 						"from": 0,
-						"to": 10,
+						"until": 10,
 						"do": {
 							"command": {
 								"symbol": "==",
@@ -673,7 +673,7 @@ func TestSingleProgram(t *testing.T) {
 				{Type: token.INT, Literal: "0"},
 				{Type: token.COMMA, Literal: ","},
 				{Type: token.DOUBLE_QUOTE, Literal: "\""},
-				{Type: token.STRING, Literal: "to"},
+				{Type: token.STRING, Literal: "until"},
 				{Type: token.DOUBLE_QUOTE, Literal: "\""},
 				{Type: token.COLON, Literal: ":"},
 				{Type: token.INT, Literal: "10"},
