@@ -189,7 +189,7 @@ func applyFunction(function object.Object, args object.Object) object.Object {
 	case *object.Function:
 		extendedEnv, err := extendFunctionEnv(funcType, args)
 		if err != nil {
-			return newError(err.Error())
+			return newError("failed to apply function: %s", err)
 		}
 
 		return Eval(funcType.Body, extendedEnv)
