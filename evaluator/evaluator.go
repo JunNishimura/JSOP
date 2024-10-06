@@ -301,17 +301,17 @@ func evalLoopExpression(exp ast.Expression, env *object.Environment) object.Obje
 		return newError("from value must be INTEGER, got %s", from.Type())
 	}
 
-	toValue, ok := kvPairs["to"]
+	untilValue, ok := kvPairs["until"]
 	if !ok {
-		return newError("to key not found in loop: %s", keyValueObj)
+		return newError("until key not found in loop: %s", keyValueObj)
 	}
-	to := Eval(toValue, env)
-	if isError(to) {
-		return to
+	until := Eval(untilValue, env)
+	if isError(until) {
+		return until
 	}
-	toInt, ok := to.(*object.Integer)
+	untilInt, ok := until.(*object.Integer)
 	if !ok {
-		return newError("to value must be INTEGER, got %s", to.Type())
+		return newError("until value must be INTEGER, got %s", until.Type())
 	}
 
 	doValue, ok := kvPairs["do"]
@@ -321,7 +321,7 @@ func evalLoopExpression(exp ast.Expression, env *object.Environment) object.Obje
 
 	var result object.Object
 
-	for i := fromInt.Value; i < toInt.Value; i++ {
+	for i := fromInt.Value; i < untilInt.Value; i++ {
 		env.Set(loopSymbol.Value, &object.Integer{Value: i})
 		evaluated := Eval(doValue, env)
 		if isError(evaluated) {

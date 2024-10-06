@@ -414,7 +414,7 @@ func TestLoopExpression(t *testing.T) {
 					"loop": {
 						"for": "$i",
 						"from": 1,
-						"to": 3,
+						"until": 3,
 						"do": {
 							"command": {
 								"symbol": "+",
