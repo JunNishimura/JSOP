@@ -19,6 +19,8 @@ func Eval(exp ast.Expression, env *object.Environment) object.Object {
 		return evalArray(expt, env)
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: expt.Value}
+	case *ast.StringLiteral:
+		return &object.String{Value: expt.Value}
 	case *ast.Boolean:
 		return nativeBoolToBooleanObject(expt.Value)
 	case *ast.PrefixAtom:
