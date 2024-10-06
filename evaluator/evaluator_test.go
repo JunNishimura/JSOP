@@ -446,6 +446,115 @@ func TestSetExpression(t *testing.T) {
 	}
 }
 
+func TestLambdaExpression(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected int64
+	}{
+		{
+			name: "lambda expression without parameters",
+			input: `
+				[
+					{
+						"set": {
+							"var": "$f",
+							"val": {
+								"lambda": {
+									"body": 10
+								}
+							}
+						}
+					},
+					{
+						"command": {
+							"symbol": "$f"
+						}
+					}
+				]`,
+			expected: 10,
+		},
+		{
+			name: "lambda expression with a parameter",
+			input: `
+				[
+					{
+						"set": {
+							"var": "$addOne",
+							"val": {
+								"lambda": {
+									"params": "$x",
+									"body": {
+										"command": {
+											"symbol": "+",
+											"args": [1, "$x"]
+										}
+									}
+								}
+							}
+						}
+					},
+					{
+						"command": {
+							"symbol": "$addOne",
+							"args": 10
+						}
+					}
+				]`,
+			expected: 11,
+		},
+		{
+			name: "lambda expression with multiple parameters",
+			input: `
+				[
+					{
+						"set": {
+							"var": "$addAndDouble",
+							"val": {
+								"lambda": {
+									"params": ["$x", "$y"],
+									"body": {
+										"command": {
+											"symbol": "*",
+											"args": [
+												{
+													"command": {
+														"symbol": "+",
+														"args": ["$x", "$y"]
+													}
+												},
+												2
+											]
+										}
+									}
+								}
+							}
+						}
+					},
+					{
+						"command": {
+							"symbol": "$addAndDouble",
+							"args": [1, 2]
+						}
+					}
+				]`,
+			expected: 6,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			evaluated := testEval(t, tt.input)
+			evaluatedArray, ok := evaluated.(*object.Array)
+			if !ok {
+				t.Fatalf("object is not Array. got=%T", evaluated)
+			}
+			finalResult := evaluatedArray.Elements[len(evaluatedArray.Elements)-1]
+			testIntegerObject(t, finalResult, tt.expected)
+		})
+	}
+}
+
 func testArrayObject(t *testing.T, obj object.Object, expected []any) {
 	result, ok := obj.(*object.Array)
 	if !ok {
