@@ -453,6 +453,30 @@ func TestLambdaExpression(t *testing.T) {
 		expected int64
 	}{
 		{
+			name: "call lambda expression directly",
+			input: `
+				[
+					{
+						"command": {
+							"symbol": {
+								"lambda": {
+									"params": "$x",
+									"body": {
+										"command": {
+											"symbol": "+",
+											"args": [1, "$x"]
+										}
+									}
+								}
+							},
+							"args": 10
+						}
+					}
+				]
+			`,
+			expected: 11,
+		},
+		{
 			name: "lambda expression without parameters",
 			input: `
 				[
