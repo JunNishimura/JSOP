@@ -303,6 +303,38 @@ func TestEvalBooleanExpression(t *testing.T) {
 	}
 }
 
+func testStringObject(t *testing.T, obj object.Object, expected string) {
+	result, ok := obj.(*object.String)
+	if !ok {
+		t.Fatalf("object is not String. got=%T", obj)
+	}
+
+	if result.Value != expected {
+		t.Fatalf("object has wrong value. got=%s, want=%s", result.Value, expected)
+	}
+}
+
+func TestEvalStringExpression(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "string literal",
+			input:    `"hello"`,
+			expected: "hello",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			evaluated := testEval(t, tt.input)
+			testStringObject(t, evaluated, tt.expected)
+		})
+	}
+}
+
 func TestIfElseExpression(t *testing.T) {
 	tests := []struct {
 		name     string
