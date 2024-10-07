@@ -64,6 +64,16 @@ func TestSingleProgram(t *testing.T) {
 			},
 		},
 		{
+			name:  "string literal with space",
+			input: `"hello world"`,
+			expected: []token.Token{
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.STRING, Literal: "hello world"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.EOF, Literal: ""},
+			},
+		},
+		{
 			name:  "array",
 			input: "[1, 2]",
 			expected: []token.Token{
