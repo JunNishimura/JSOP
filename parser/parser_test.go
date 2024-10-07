@@ -1110,7 +1110,7 @@ func TestLoopExpression(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
-		expected ast.Object
+		expected ast.Expression
 	}{
 		{
 			name: "loop expression",
@@ -1226,6 +1226,162 @@ func TestLoopExpression(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "loop expression with in keyword",
+			input: `
+				[
+					{
+						"set": {
+							"var": "$arr",
+							"val": [10, 20, 30]	
+						}
+					},
+					{
+						"loop": {
+							"for": "$element",
+							"in": "$arr",
+							"do": {
+								"command": {
+									"symbol": "print",
+									"args": "$element"
+								}
+							}
+						}
+					}
+				]`,
+			expected: &ast.Array{
+				Token: token.Token{Type: token.LBRACKET, Literal: "["},
+				Elements: []ast.Expression{
+					&ast.KeyValueObject{
+						Token: token.Token{Type: token.LBRACE, Literal: "{"},
+						KV: []*ast.KeyValuePair{
+							{
+								Key: &ast.StringLiteral{
+									Token: token.Token{Type: token.STRING, Literal: "set"},
+									Value: "set",
+								},
+								Value: &ast.KeyValueObject{
+									Token: token.Token{Type: token.LBRACE, Literal: "{"},
+									KV: []*ast.KeyValuePair{
+										{
+											Key: &ast.StringLiteral{
+												Token: token.Token{Type: token.STRING, Literal: "var"},
+												Value: "var",
+											},
+											Value: &ast.Symbol{
+												Token: token.Token{Type: token.STRING, Literal: "$arr"},
+												Value: "$arr",
+											},
+										},
+										{
+											Key: &ast.StringLiteral{
+												Token: token.Token{Type: token.STRING, Literal: "val"},
+												Value: "val",
+											},
+											Value: &ast.Array{
+												Token: token.Token{Type: token.LBRACKET, Literal: "["},
+												Elements: []ast.Expression{
+													&ast.IntegerLiteral{
+														Token: token.Token{Type: token.INT, Literal: "10"},
+														Value: 10,
+													},
+													&ast.IntegerLiteral{
+														Token: token.Token{Type: token.INT, Literal: "20"},
+														Value: 20,
+													},
+													&ast.IntegerLiteral{
+														Token: token.Token{Type: token.INT, Literal: "30"},
+														Value: 30,
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					&ast.KeyValueObject{
+						Token: token.Token{Type: token.LBRACE, Literal: "{"},
+						KV: []*ast.KeyValuePair{
+							{
+								Key: &ast.StringLiteral{
+									Token: token.Token{Type: token.STRING, Literal: "loop"},
+									Value: "loop",
+								},
+								Value: &ast.KeyValueObject{
+									Token: token.Token{Type: token.LBRACE, Literal: "{"},
+									KV: []*ast.KeyValuePair{
+										{
+											Key: &ast.StringLiteral{
+												Token: token.Token{Type: token.STRING, Literal: "for"},
+												Value: "for",
+											},
+											Value: &ast.Symbol{
+												Token: token.Token{Type: token.STRING, Literal: "$element"},
+												Value: "$element",
+											},
+										},
+										{
+											Key: &ast.StringLiteral{
+												Token: token.Token{Type: token.STRING, Literal: "in"},
+												Value: "in",
+											},
+											Value: &ast.Symbol{
+												Token: token.Token{Type: token.STRING, Literal: "$arr"},
+												Value: "$arr",
+											},
+										},
+										{
+											Key: &ast.StringLiteral{
+												Token: token.Token{Type: token.STRING, Literal: "do"},
+												Value: "do",
+											},
+											Value: &ast.KeyValueObject{
+												Token: token.Token{Type: token.LBRACE, Literal: "{"},
+												KV: []*ast.KeyValuePair{
+													{
+														Key: &ast.StringLiteral{
+															Token: token.Token{Type: token.STRING, Literal: "command"},
+															Value: "command",
+														},
+														Value: &ast.KeyValueObject{
+															Token: token.Token{Type: token.LBRACE, Literal: "{"},
+															KV: []*ast.KeyValuePair{
+																{
+																	Key: &ast.StringLiteral{
+																		Token: token.Token{Type: token.STRING, Literal: "symbol"},
+																		Value: "symbol",
+																	},
+																	Value: &ast.Symbol{
+																		Token: token.Token{Type: token.STRING, Literal: "print"},
+																		Value: "print",
+																	},
+																},
+																{
+																	Key: &ast.StringLiteral{
+																		Token: token.Token{Type: token.STRING, Literal: "args"},
+																		Value: "args",
+																	},
+																	Value: &ast.Symbol{
+																		Token: token.Token{Type: token.STRING, Literal: "$element"},
+																		Value: "$element",
+																	},
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -1238,12 +1394,8 @@ func TestLoopExpression(t *testing.T) {
 				t.Fatalf("ParseProgram() error: %v", err)
 			}
 
-			kvObject, ok := program.(*ast.KeyValueObject)
-			if !ok {
-				t.Fatalf("exp not *ast.KeyValueObject. got=%T", program)
-			}
-			if kvObject.String() != tt.expected.String() {
-				t.Fatalf("kvObject.String() not %q. got=%q", tt.expected.String(), kvObject.String())
+			if program.String() != tt.expected.String() {
+				t.Fatalf("program.String() not %q. got=%q", tt.expected.String(), program.String())
 			}
 		})
 	}
