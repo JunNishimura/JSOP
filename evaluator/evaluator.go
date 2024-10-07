@@ -279,6 +279,25 @@ func evalLoopExpression(exp ast.Expression, env *object.Environment) object.Obje
 	}
 	kvPairs := keyValueObj.KVPairs()
 
+	_, isFromKeyFound := kvPairs["from"]
+	_, isUntilKeyFound := kvPairs["until"]
+	if isFromKeyFound && isUntilKeyFound {
+		return evalFromUntilLoop(keyValueObj, env)
+	} else if (isFromKeyFound && !isUntilKeyFound) || (!isFromKeyFound && isUntilKeyFound) {
+		return newError("both from and until keys must be found in loop: %s", keyValueObj)
+	}
+
+	if _, ok := kvPairs["in"]; ok {
+		return evalInLoop(keyValueObj, env)
+	}
+
+	return newError("unknown loop type: %s", keyValueObj)
+}
+
+func evalFromUntilLoop(keyValueObj *ast.KeyValueObject, env *object.Environment) object.Object {
+	extendedEnv := object.NewEnclosedEnvironment(env)
+	kvPairs := keyValueObj.KVPairs()
+
 	forValue, ok := kvPairs["for"]
 	if !ok {
 		return newError("for key not found in loop: %s", keyValueObj)
@@ -322,8 +341,80 @@ func evalLoopExpression(exp ast.Expression, env *object.Environment) object.Obje
 	var result object.Object
 
 	for i := fromInt.Value; i < untilInt.Value; i++ {
-		env.Set(loopSymbol.Value, &object.Integer{Value: i})
-		evaluated := Eval(doValue, env)
+		extendedEnv.Set(loopSymbol.Value, &object.Integer{Value: i})
+		evaluated := Eval(doValue, extendedEnv)
+		if isError(evaluated) {
+			return evaluated
+		}
+
+		result = evaluated
+	}
+
+	return result
+}
+
+func evalInLoop(keyValueObj *ast.KeyValueObject, env *object.Environment) object.Object {
+	extendedEnv := object.NewEnclosedEnvironment(env)
+	kvPairs := keyValueObj.KVPairs()
+
+	forValue, ok := kvPairs["for"]
+	if !ok {
+		return newError("for key not found in loop: %s", keyValueObj)
+	}
+	loopSymbol, ok := forValue.(*ast.Symbol)
+	if !ok {
+		return newError("for key must be SYMBOL, got %s", forValue)
+	}
+
+	doValue, ok := kvPairs["do"]
+	if !ok {
+		return newError("do key not found in loop: %s", keyValueObj)
+	}
+
+	var result object.Object
+
+	inValue, ok := kvPairs["in"]
+	if !ok {
+		return newError("in key not found in loop: %s", keyValueObj)
+	}
+	inArray, ok := inValue.(*ast.Array)
+	if ok {
+		for _, el := range inArray.Elements {
+			evaluatedElement := Eval(el, env)
+			if isError(evaluatedElement) {
+				return evaluatedElement
+			}
+
+			extendedEnv.Set(loopSymbol.Value, evaluatedElement)
+			evaluated := Eval(doValue, extendedEnv)
+			if isError(evaluated) {
+				return evaluated
+			}
+
+			result = evaluated
+		}
+
+		return result
+	}
+
+	symbol, ok := inValue.(*ast.Symbol)
+	if !ok {
+		return newError("in key must be ARRAY or SYMBOL, got %s", inValue)
+	}
+
+	evaluatedInSymbol := Eval(symbol, env)
+	if isError(evaluatedInSymbol) {
+		return evaluatedInSymbol
+	}
+
+	arrayObj, ok := evaluatedInSymbol.(*object.Array)
+	if !ok {
+		return newError("in key must be ARRAY or SYMBOL, got %s", evaluatedInSymbol.Type())
+	}
+
+	for _, el := range arrayObj.Elements {
+		extendedEnv.Set(loopSymbol.Value, el)
+		evaluated := Eval(doValue, extendedEnv)
 		if isError(evaluated) {
 			return evaluated
 		}
