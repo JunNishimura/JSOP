@@ -410,27 +410,72 @@ func TestLoopExpression(t *testing.T) {
 		{
 			name: "loop expression",
 			input: `
-				{
-					"loop": {
-						"for": "$i",
-						"from": 1,
-						"until": 3,
-						"do": {
-							"command": {
-								"symbol": "+",
-								"args": [1, "$i"]
+				[
+					{
+						"loop": {
+							"for": "$i",
+							"from": 1,
+							"until": 3,
+							"do": {
+								"command": {
+									"symbol": "+",
+									"args": [1, "$i"]
+								}
 							}
 						}
 					}
-				}`,
+				]`,
 			expected: 3,
+		},
+		{
+			name: "loop expression with in keyword",
+			input: `
+				[
+					{
+						"set": {
+							"var": "$arr",
+							"val": [10, 20, 30]	
+						}
+					},
+					{
+						"set": {
+							"var": "$sum",
+							"val": 0
+						}
+					},
+					{
+						"loop": {
+							"for": "$element",
+							"in": "$arr",
+							"do": {
+								"set": {
+									"var": "$sum",
+									"val": {
+										"command": {
+											"symbol": "+",
+											"args": ["$sum", "$element"]
+										}
+									}
+								}
+							}
+						}
+					}
+				]`,
+			expected: 60,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			evaluated := testEval(t, tt.input)
-			testIntegerObject(t, evaluated, tt.expected)
+
+			evaluatedArray, ok := evaluated.(*object.Array)
+			if !ok {
+				t.Fatalf("object is not Array. got=%T", evaluated)
+			}
+
+			finalResult := evaluatedArray.Elements[len(evaluatedArray.Elements)-1]
+			testIntegerObject(t, finalResult, tt.expected)
 		})
 	}
 }
