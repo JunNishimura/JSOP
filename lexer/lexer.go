@@ -1,6 +1,10 @@
 package lexer
 
-import "github.com/JunNishimura/jsop/token"
+import (
+	"strings"
+
+	"github.com/JunNishimura/jsop/token"
+)
 
 type Lexer struct {
 	input   string
@@ -60,9 +64,16 @@ func (l *Lexer) NextToken() token.Token {
 			tok.Literal = l.readNumber()
 			return tok
 		} else if isLetter(l.curChar) || isSpecialChar(l.curChar) {
-			tok.Literal = l.readString()
-			tok.Type = token.LookupStringTokenType(tok.Literal)
-			return tok
+			readStr := l.readString()
+
+			trimmedStr := strings.TrimSpace(readStr)
+			if trimmedStr == "true" {
+				return token.Token{Type: token.TRUE, Literal: trimmedStr}
+			} else if trimmedStr == "false" {
+				return token.Token{Type: token.FALSE, Literal: trimmedStr}
+			}
+
+			return token.Token{Type: token.STRING, Literal: readStr}
 		}
 		tok = newToken(token.ILLEGAL, l.curChar)
 	}
@@ -72,13 +83,17 @@ func (l *Lexer) NextToken() token.Token {
 }
 
 func (l *Lexer) skipWhitespace() {
-	for l.curChar == ' ' || l.curChar == '\t' || l.curChar == '\n' || l.curChar == '\r' {
+	for isWhitespace(l.curChar) {
 		l.readChar()
 	}
 }
 
 func newToken(tokenType token.TokenType, ch byte) token.Token {
 	return token.Token{Type: tokenType, Literal: string(ch)}
+}
+
+func isWhitespace(ch byte) bool {
+	return ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r'
 }
 
 func isDigit(ch byte) bool {
@@ -111,7 +126,7 @@ func (l *Lexer) readNumber() string {
 
 func (l *Lexer) readString() string {
 	startPos := l.curPos
-	for isLetter(l.curChar) || isSpecialChar(l.curChar) {
+	for isLetter(l.curChar) || isSpecialChar(l.curChar) || isWhitespace(l.curChar) {
 		l.readChar()
 	}
 	return l.input[startPos:l.curPos]
