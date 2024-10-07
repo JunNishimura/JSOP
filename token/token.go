@@ -1,5 +1,7 @@
 package token
 
+import "strings"
+
 type TokenType string
 
 type Token struct {
@@ -28,33 +30,35 @@ const (
 	COMMA        = ","
 )
 
-var reservedWords = map[string]TokenType{
-	"true":  TRUE,
-	"false": FALSE,
-}
-
-func LookupStringTokenType(word string) TokenType {
-	if tok, ok := reservedWords[word]; ok {
-		return tok
-	}
-	return STRING
-}
-
 func IsBuiltinSymbol(strLiteral string) bool {
-	if strLiteral == "+" ||
-		strLiteral == "-" ||
-		strLiteral == "*" ||
-		strLiteral == "/" ||
-		strLiteral == "==" ||
-		strLiteral == "!=" ||
-		strLiteral == ">" ||
-		strLiteral == "<" ||
-		strLiteral == ">=" ||
-		strLiteral == "<=" ||
-		strLiteral == "!" ||
-		strLiteral == "at" {
+	trimmedStr := strings.TrimSpace(strLiteral)
+
+	if trimmedStr == "+" ||
+		trimmedStr == "-" ||
+		trimmedStr == "*" ||
+		trimmedStr == "/" ||
+		trimmedStr == "==" ||
+		trimmedStr == "!=" ||
+		trimmedStr == ">" ||
+		trimmedStr == "<" ||
+		trimmedStr == ">=" ||
+		trimmedStr == "<=" ||
+		trimmedStr == "!" ||
+		trimmedStr == "at" {
 		return true
 	}
 
 	return false
+}
+
+func IsSymbol(strLiteral string) bool {
+	trimmedStr := strings.TrimSpace(strLiteral)
+
+	// not contain any whitespace
+	if strings.Contains(trimmedStr, " ") {
+		return false
+	}
+
+	// starts with a dollar sign
+	return strings.HasPrefix(trimmedStr, "$")
 }

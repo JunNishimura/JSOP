@@ -228,9 +228,9 @@ func (p *Parser) parseDoubleQuotedString() (ast.Expression, error) {
 
 	var res ast.Expression
 
-	if token.IsBuiltinSymbol(p.curToken.Literal) ||
-		p.curToken.Literal[0] == '$' {
-		res = &ast.Symbol{Token: p.curToken, Value: p.curToken.Literal}
+	if token.IsBuiltinSymbol(p.curToken.Literal) || token.IsSymbol(p.curToken.Literal) {
+		trimmedStr := strings.TrimSpace(p.curToken.Literal)
+		res = &ast.Symbol{Token: p.curToken, Value: trimmedStr}
 	} else {
 		res = &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}
 	}

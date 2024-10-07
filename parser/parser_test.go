@@ -58,6 +58,11 @@ func TestStringAtom(t *testing.T) {
 			input:    `"hello"`,
 			expected: "hello",
 		},
+		{
+			name:     "string with space",
+			input:    `"hello world"`,
+			expected: "hello world",
+		},
 	}
 
 	for _, tt := range tests {
