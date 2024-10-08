@@ -762,6 +762,25 @@ func TestArrayExpression(t *testing.T) {
 				]`,
 			expected: []any{[]any{10, 20, 30}, 20},
 		},
+		{
+			name: "length of array",
+			input: `
+				[
+					{
+						"set": {
+							"var": "$x",
+							"val": [10, 20, 30]
+						}
+					},
+					{
+						"command": {
+							"symbol": "len",
+							"args": "$x"
+						}
+					}
+				]`,
+			expected: []any{[]any{10, 20, 30}, 3},
+		},
 	}
 
 	for _, tt := range tests {
