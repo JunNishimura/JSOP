@@ -724,6 +724,51 @@ func TestSingleProgram(t *testing.T) {
 				{Type: token.EOF, Literal: ""},
 			},
 		},
+		{
+			name: "single line comment",
+			input: `
+				{
+					"//": "this is a comment",
+					"command": {
+						"//": "this is another comment",
+						"symbol": "print"
+					}
+				}`,
+			expected: []token.Token{
+				{Type: token.LBRACE, Literal: "{"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.STRING, Literal: "//"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.STRING, Literal: "this is a comment"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COMMA, Literal: ","},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.STRING, Literal: "command"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.LBRACE, Literal: "{"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.STRING, Literal: "//"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.STRING, Literal: "this is another comment"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COMMA, Literal: ","},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.STRING, Literal: "symbol"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.STRING, Literal: "print"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.RBRACE, Literal: "}"},
+				{Type: token.RBRACE, Literal: "}"},
+				{Type: token.EOF, Literal: ""},
+			},
+		},
 	}
 
 	for _, tt := range tests {

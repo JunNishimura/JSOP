@@ -761,6 +761,72 @@ func TestCommand(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "single line comment",
+			input: `
+				{
+					"command": {
+						"//": "this is a comment",
+						"symbol": "+",
+						"args": [1, 2]
+					}
+				}`,
+			expected: &ast.KeyValueObject{
+				Token: token.Token{Type: token.LBRACE, Literal: "{"},
+				KV: []*ast.KeyValuePair{
+					{
+						Key: &ast.StringLiteral{
+							Token: token.Token{Type: token.STRING, Literal: "command"},
+							Value: "command",
+						},
+						Value: &ast.KeyValueObject{
+							Token: token.Token{Type: token.LBRACE, Literal: "{"},
+							KV: []*ast.KeyValuePair{
+								{
+									Key: &ast.StringLiteral{
+										Token: token.Token{Type: token.STRING, Literal: "//"},
+										Value: "//",
+									},
+									Value: &ast.StringLiteral{
+										Token: token.Token{Type: token.STRING, Literal: "this is a comment"},
+										Value: "this is a comment",
+									},
+								},
+								{
+									Key: &ast.StringLiteral{
+										Token: token.Token{Type: token.STRING, Literal: "symbol"},
+										Value: "symbol",
+									},
+									Value: &ast.Symbol{
+										Token: token.Token{Type: token.STRING, Literal: "+"},
+										Value: "+",
+									},
+								},
+								{
+									Key: &ast.StringLiteral{
+										Token: token.Token{Type: token.STRING, Literal: "args"},
+										Value: "args",
+									},
+									Value: &ast.Array{
+										Token: token.Token{Type: token.LBRACKET, Literal: "["},
+										Elements: []ast.Expression{
+											&ast.IntegerLiteral{
+												Token: token.Token{Type: token.INT, Literal: "1"},
+												Value: 1,
+											},
+											&ast.IntegerLiteral{
+												Token: token.Token{Type: token.INT, Literal: "2"},
+												Value: 2,
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
