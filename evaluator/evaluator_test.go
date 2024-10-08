@@ -101,6 +101,18 @@ func TestEvalIntegerExpression(t *testing.T) {
 			`,
 			expected: 2,
 		},
+		{
+			name: "single line comment",
+			input: `
+				{
+					"command": {
+						"//": "this is a comment",
+						"symbol": "+",
+						"args": [1, 2]
+					}
+				}`,
+			expected: 3,
+		},
 	}
 
 	for _, tt := range tests {
