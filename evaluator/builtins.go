@@ -1,6 +1,10 @@
 package evaluator
 
-import "github.com/JunNishimura/jsop/object"
+import (
+	"fmt"
+
+	"github.com/JunNishimura/jsop/object"
+)
 
 var builtins = map[string]*object.Builtin{
 	"+": {
@@ -277,6 +281,23 @@ var builtins = map[string]*object.Builtin{
 			}
 
 			return variable.Elements[index.Value]
+		},
+	},
+	"print": {
+		Fn: func(args object.Object) object.Object {
+			fmt.Println(args.Inspect())
+
+			return Null
+		},
+	},
+	"len": {
+		Fn: func(args object.Object) object.Object {
+			array, ok := args.(*object.Array)
+			if !ok {
+				return newError("argument to 'len' must be ARRAY, got %s", args.Type())
+			}
+
+			return &object.Integer{Value: int64(len(array.Elements))}
 		},
 	},
 }

@@ -44,7 +44,9 @@ func IsBuiltinSymbol(strLiteral string) bool {
 		trimmedStr == ">=" ||
 		trimmedStr == "<=" ||
 		trimmedStr == "!" ||
-		trimmedStr == "at" {
+		trimmedStr == "at" ||
+		trimmedStr == "print" ||
+		trimmedStr == "len" {
 		return true
 	}
 
