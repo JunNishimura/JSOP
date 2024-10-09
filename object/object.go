@@ -16,6 +16,7 @@ const (
 	NULL_OBJ     = "NULL"
 	FUNCTION_OBJ = "FUNCTION"
 	BUILTIN_OBJ  = "BUILTIN"
+	QUOTE_OBJ    = "QUOTE"
 )
 
 type ObjectType string
@@ -110,3 +111,10 @@ type Builtin struct {
 
 func (b *Builtin) Type() ObjectType { return BUILTIN_OBJ }
 func (b *Builtin) Inspect() string  { return "builtin function" }
+
+type Quote struct {
+	Expression ast.Expression
+}
+
+func (q *Quote) Type() ObjectType { return QUOTE_OBJ }
+func (q *Quote) Inspect() string  { return q.Expression.String() }
