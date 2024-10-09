@@ -53,6 +53,12 @@ func IsBuiltinSymbol(strLiteral string) bool {
 	return false
 }
 
+func IsQuoteUnquoteSymbol(strLiteral string) bool {
+	trimmedStr := strings.TrimSpace(strLiteral)
+
+	return trimmedStr == "quote" || trimmedStr == "unquote"
+}
+
 func IsSymbol(strLiteral string) bool {
 	trimmedStr := strings.TrimSpace(strLiteral)
 

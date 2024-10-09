@@ -134,6 +134,15 @@ func evalCommandObject(exp ast.Expression, env *object.Environment) object.Objec
 	if !ok {
 		return newError("symbol key not found in command: %s", keyValueObj)
 	}
+
+	if symbol, ok := symbolValue.(*ast.Symbol); ok && symbol.Value == "quote" {
+		argsValue, ok := kvPairs["args"]
+		if !ok {
+			return newError("quote command requires args key: %s", keyValueObj)
+		}
+		return quote(argsValue, env)
+	}
+
 	symbol := Eval(symbolValue, env)
 	if isError(symbol) {
 		return symbol
