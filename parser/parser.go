@@ -98,6 +98,11 @@ func (p *Parser) parseObject() (ast.Object, error) {
 	}
 	p.nextToken()
 
+	if p.curTokenIs(token.RBRACE) {
+		p.nextToken()
+		return object, nil
+	}
+
 	// parse key value pairs
 	for {
 		kvPair, err := p.parseKeyValuePair()
