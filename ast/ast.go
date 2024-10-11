@@ -52,14 +52,6 @@ func (pa *PrefixAtom) String() string {
 	return out.String()
 }
 
-type Symbol struct {
-	Token token.Token
-	Value string
-}
-
-func (s *Symbol) TokenLiteral() string { return s.Token.Literal }
-func (s *Symbol) String() string       { return fmt.Sprintf("\"%s\"", s.Value) }
-
 type Array struct {
 	Token    token.Token
 	Elements []Expression
