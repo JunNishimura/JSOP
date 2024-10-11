@@ -42,7 +42,17 @@ func Run() error {
 
 	// evaluate program
 	env := object.NewEnvironment()
-	evaluated := evaluator.Eval(program, env)
+
+	// define macros
+	if err := evaluator.DefineMacros(program, env); err != nil {
+		return fmt.Errorf("fail to define macros: %s", err)
+	}
+
+	// expand macros
+	expanded := evaluator.ExpandMacros(program, env)
+
+	// evaluate expanded program
+	evaluated := evaluator.Eval(expanded, env)
 	finalResult := extractFinalEvaluation(evaluated)
 
 	fmt.Println(finalResult.Inspect())
