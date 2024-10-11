@@ -231,8 +231,7 @@ func (p *Parser) parseDoubleQuotedString() (ast.Expression, error) {
 		return nil, err
 	}
 
-	trimmed := strings.TrimSpace(p.curToken.Literal)
-	res := &ast.StringLiteral{Token: p.curToken, Value: trimmed}
+	res := &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}
 	p.nextToken()
 
 	if err := p.expectCurToken(token.DOUBLE_QUOTE); err != nil {
