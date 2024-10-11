@@ -31,22 +31,22 @@ func evalUnquote(quoted ast.Expression, env *object.Environment) ast.Expression 
 	})
 }
 
-func evalUnquoteCommand(kvObject *ast.KeyValueObject, env *object.Environment) ast.Expression {
-	commandValue, ok := kvObject.KVPairs()["command"]
+func evalUnquoteCommand(kvObj *ast.KeyValueObject, env *object.Environment) ast.Expression {
+	cmdVal, ok := kvObj.KVPairs()["command"]
 	if !ok {
-		return kvObject
+		return kvObj
 	}
-	commandObject, ok := commandValue.(*ast.KeyValueObject)
+	cmdObj, ok := cmdVal.(*ast.KeyValueObject)
 	if !ok {
-		return kvObject
-	}
-
-	argsValue, ok := commandObject.KVPairs()["args"]
-	if !ok {
-		return kvObject
+		return kvObj
 	}
 
-	unquoted := Eval(argsValue, env)
+	argsVal, ok := cmdObj.KVPairs()["args"]
+	if !ok {
+		return kvObj
+	}
+
+	unquoted := Eval(argsVal, env)
 	return convertObjectToExpression(unquoted)
 }
 
@@ -58,40 +58,36 @@ func evalUnquoteString(strLit *ast.StringLiteral, env *object.Environment) ast.E
 }
 
 func isUnquote(exp ast.Expression) bool {
-	kvObject, ok := exp.(*ast.KeyValueObject)
-	if ok {
-		return isUnquoteCommand(kvObject)
-	}
-
-	strLit, ok := exp.(*ast.StringLiteral)
-	if ok {
-		return strings.HasPrefix(strLit.Value, ",")
+	switch exp := exp.(type) {
+	case *ast.KeyValueObject:
+		return isUnquoteCommand(exp)
+	case *ast.StringLiteral:
+		return strings.HasPrefix(exp.Value, ",")
 	}
 
 	return false
 }
 
 func isUnquoteCommand(exp ast.Expression) bool {
-	kvObject, ok := exp.(*ast.KeyValueObject)
+	kvObj, ok := exp.(*ast.KeyValueObject)
 	if !ok {
 		return false
 	}
 
-	commandValue, ok := kvObject.KVPairs()["command"]
+	cmdVal, ok := kvObj.KVPairs()["command"]
 	if !ok {
 		return false
 	}
-	commandObject, ok := commandValue.(*ast.KeyValueObject)
-	if !ok {
-		return false
-	}
-
-	symbol, ok := commandObject.KVPairs()["symbol"]
+	cmdObj, ok := cmdVal.(*ast.KeyValueObject)
 	if !ok {
 		return false
 	}
 
-	symbolStr, ok := symbol.(*ast.StringLiteral)
+	symbolVal, ok := cmdObj.KVPairs()["symbol"]
+	if !ok {
+		return false
+	}
+	symbolStr, ok := symbolVal.(*ast.StringLiteral)
 	if !ok {
 		return false
 	}
