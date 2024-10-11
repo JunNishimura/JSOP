@@ -2,6 +2,7 @@ package evaluator
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/JunNishimura/jsop/ast"
 	"github.com/JunNishimura/jsop/object"
@@ -9,38 +10,65 @@ import (
 )
 
 func quote(exp ast.Expression, env *object.Environment) object.Object {
-	unquotedExp := evalUnquoteCommand(exp, env)
+	unquotedExp := evalUnquote(exp, env)
 	return &object.Quote{Expression: unquotedExp}
 }
 
-func evalUnquoteCommand(quoted ast.Expression, env *object.Environment) ast.Expression {
+func evalUnquote(quoted ast.Expression, env *object.Environment) ast.Expression {
 	return ast.Modify(quoted, func(exp ast.Expression) ast.Expression {
-		if !isUnquoteCommand(exp) {
+		if !isUnquote(exp) {
 			return exp
 		}
 
 		kvObject, ok := exp.(*ast.KeyValueObject)
+		if ok {
+			return evalUnquoteCommand(kvObject, env)
+		}
+
+		strLit, ok := exp.(*ast.StringLiteral)
 		if !ok {
 			return exp
 		}
 
-		commandValue, ok := kvObject.KVPairs()["command"]
-		if !ok {
-			return exp
-		}
-		commandObject, ok := commandValue.(*ast.KeyValueObject)
-		if !ok {
-			return exp
+		if obj, isFound := env.Get(strLit.Value[1:]); isFound {
+			return convertObjectToExpression(obj)
 		}
 
-		argsValue, ok := commandObject.KVPairs()["args"]
-		if !ok {
-			return exp
-		}
-
-		unquoted := Eval(argsValue, env)
-		return convertObjectToExpression(unquoted)
+		return exp
 	})
+}
+
+func evalUnquoteCommand(kvObject *ast.KeyValueObject, env *object.Environment) ast.Expression {
+	commandValue, ok := kvObject.KVPairs()["command"]
+	if !ok {
+		return kvObject
+	}
+	commandObject, ok := commandValue.(*ast.KeyValueObject)
+	if !ok {
+		return kvObject
+	}
+
+	argsValue, ok := commandObject.KVPairs()["args"]
+	if !ok {
+		return kvObject
+	}
+
+	unquoted := Eval(argsValue, env)
+	return convertObjectToExpression(unquoted)
+}
+
+func isUnquote(exp ast.Expression) bool {
+	kvObject, ok := exp.(*ast.KeyValueObject)
+	if ok {
+		return isUnquoteCommand(kvObject)
+	}
+
+	strLit, ok := exp.(*ast.StringLiteral)
+	if ok {
+		return strings.HasPrefix(strLit.Value, ",")
+	}
+
+	return false
 }
 
 func isUnquoteCommand(exp ast.Expression) bool {
@@ -63,7 +91,7 @@ func isUnquoteCommand(exp ast.Expression) bool {
 		return false
 	}
 
-	symbolStr, ok := symbol.(*ast.Symbol)
+	symbolStr, ok := symbol.(*ast.StringLiteral)
 	if !ok {
 		return false
 	}
