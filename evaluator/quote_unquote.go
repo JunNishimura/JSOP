@@ -20,18 +20,11 @@ func evalUnquote(quoted ast.Expression, env *object.Environment) ast.Expression 
 			return exp
 		}
 
-		kvObject, ok := exp.(*ast.KeyValueObject)
-		if ok {
-			return evalUnquoteCommand(kvObject, env)
-		}
-
-		strLit, ok := exp.(*ast.StringLiteral)
-		if !ok {
-			return exp
-		}
-
-		if obj, isFound := env.Get(strLit.Value[1:]); isFound {
-			return convertObjectToExpression(obj)
+		switch exp := exp.(type) {
+		case *ast.KeyValueObject:
+			return evalUnquoteCommand(exp, env)
+		case *ast.StringLiteral:
+			return evalUnquoteString(exp, env)
 		}
 
 		return exp
@@ -55,6 +48,13 @@ func evalUnquoteCommand(kvObject *ast.KeyValueObject, env *object.Environment) a
 
 	unquoted := Eval(argsValue, env)
 	return convertObjectToExpression(unquoted)
+}
+
+func evalUnquoteString(strLit *ast.StringLiteral, env *object.Environment) ast.Expression {
+	if obj, isFound := env.Get(strLit.Value[1:]); isFound {
+		return convertObjectToExpression(obj)
+	}
+	return strLit
 }
 
 func isUnquote(exp ast.Expression) bool {
