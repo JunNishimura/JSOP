@@ -17,6 +17,7 @@ const (
 	FUNCTION_OBJ = "FUNCTION"
 	BUILTIN_OBJ  = "BUILTIN"
 	QUOTE_OBJ    = "QUOTE"
+	MACRO_OBJ    = "MACRO"
 )
 
 type ObjectType string
@@ -80,7 +81,7 @@ func (e *Error) Type() ObjectType { return ERROR_OBJ }
 func (e *Error) Inspect() string  { return "ERROR: " + e.Message }
 
 type Function struct {
-	Parameters []*ast.Symbol
+	Parameters []*ast.StringLiteral
 	Body       ast.Expression
 	Env        *Environment
 }
@@ -118,3 +119,27 @@ type Quote struct {
 
 func (q *Quote) Type() ObjectType { return QUOTE_OBJ }
 func (q *Quote) Inspect() string  { return q.Expression.String() }
+
+type Macro struct {
+	Keys []*ast.StringLiteral
+	Body ast.Expression
+	Env  *Environment
+}
+
+func (m *Macro) Type() ObjectType { return MACRO_OBJ }
+func (m *Macro) Inspect() string {
+	var out bytes.Buffer
+
+	out.WriteString("macro(")
+	for i, k := range m.Keys {
+		if i > 0 {
+			out.WriteString(", ")
+		}
+		out.WriteString(k.Value)
+	}
+	out.WriteString(") {\n")
+	out.WriteString(m.Body.String())
+	out.WriteString("\n}")
+
+	return out.String()
+}

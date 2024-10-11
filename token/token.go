@@ -1,7 +1,5 @@
 package token
 
-import "strings"
-
 type TokenType string
 
 type Token struct {
@@ -29,44 +27,3 @@ const (
 	COLON        = ":"
 	COMMA        = ","
 )
-
-func IsBuiltinSymbol(strLiteral string) bool {
-	trimmedStr := strings.TrimSpace(strLiteral)
-
-	if trimmedStr == "+" ||
-		trimmedStr == "-" ||
-		trimmedStr == "*" ||
-		trimmedStr == "/" ||
-		trimmedStr == "==" ||
-		trimmedStr == "!=" ||
-		trimmedStr == ">" ||
-		trimmedStr == "<" ||
-		trimmedStr == ">=" ||
-		trimmedStr == "<=" ||
-		trimmedStr == "!" ||
-		trimmedStr == "at" ||
-		trimmedStr == "print" ||
-		trimmedStr == "len" {
-		return true
-	}
-
-	return false
-}
-
-func IsQuoteUnquoteSymbol(strLiteral string) bool {
-	trimmedStr := strings.TrimSpace(strLiteral)
-
-	return trimmedStr == "quote" || trimmedStr == "unquote"
-}
-
-func IsSymbol(strLiteral string) bool {
-	trimmedStr := strings.TrimSpace(strLiteral)
-
-	// not contain any whitespace
-	if strings.Contains(trimmedStr, " ") {
-		return false
-	}
-
-	// starts with a dollar sign
-	return strings.HasPrefix(trimmedStr, "$")
-}

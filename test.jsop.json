@@ -1,0 +1,75 @@
+[
+    {
+        "set": {
+            "var": "$addAndDouble",
+            "val": {
+                "lambda": {
+                    "params": ["$x", "$y"],
+                    "body": {
+                        "command": {
+                            "symbol": "*",
+                            "args": [
+                                {
+                                    "command": {
+                                        "symbol": "+",
+                                        "args": ["$x", "$y"]
+                                    }
+                                },
+                                2
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    },
+    {
+        "command": {
+            "symbol": "print",
+            "args": {
+                "command": {
+                    "symbol": "$addAndDouble",
+                    "args": [1, 2]
+                }
+            }
+        }
+    },
+    {
+        "defmacro": {
+            "name": "unless",
+            "keys": ["cond", "conseq", "alt"],
+            "body": {
+                "commmand": {
+                    "symbol": "quote",
+                    "args": {
+                        "if": {
+                            "cond": {
+                                "command": {
+                                    "symbol": "!",
+                                    "args": {
+                                        "command": {
+                                            "symbol": "unquote",
+                                            "args": "cond"
+                                        }
+                                    }
+                                }
+                            },
+                            "conseq": {
+                                "command": {
+                                    "symbol": "unquote",
+                                    "args": "$conseq"
+                                }
+                            },
+                            "alt": {
+                                "command": {
+                                    "symbol": "unquote",
+                                    "args": "$alt"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+]

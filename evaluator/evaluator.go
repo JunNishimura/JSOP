@@ -2,6 +2,7 @@ package evaluator
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/JunNishimura/jsop/ast"
 	"github.com/JunNishimura/jsop/object"
@@ -20,6 +21,10 @@ func Eval(exp ast.Expression, env *object.Environment) object.Object {
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: expt.Value}
 	case *ast.StringLiteral:
+		if strings.HasPrefix(expt.Value, "$") {
+			return evalSymbol(expt, env)
+		}
+
 		return &object.String{Value: expt.Value}
 	case *ast.Boolean:
 		return nativeBoolToBooleanObject(expt.Value)
@@ -29,8 +34,6 @@ func Eval(exp ast.Expression, env *object.Environment) object.Object {
 			return right
 		}
 		return evalPrefixAtom(expt.Operator, right)
-	case *ast.Symbol:
-		return evalSymbol(expt, env)
 	case *ast.KeyValueObject:
 		return evalKeyValueObject(expt, env)
 	default:
@@ -90,7 +93,7 @@ func evalMinusPrefix(right object.Object) object.Object {
 	return &object.Integer{Value: -value}
 }
 
-func evalSymbol(symbol *ast.Symbol, env *object.Environment) object.Object {
+func evalSymbol(symbol *ast.StringLiteral, env *object.Environment) object.Object {
 	builtintFunc, ok := builtins[symbol.Value]
 	if ok {
 		return builtintFunc
@@ -135,17 +138,25 @@ func evalCommandObject(exp ast.Expression, env *object.Environment) object.Objec
 		return newError("symbol key not found in command: %s", keyValueObj)
 	}
 
-	if symbol, ok := symbolValue.(*ast.Symbol); ok && symbol.Value == "quote" {
-		argsValue, ok := kvPairs["args"]
-		if !ok {
-			return newError("quote command requires args key: %s", keyValueObj)
+	var symbol object.Object
+	if symbolStr, ok := symbolValue.(*ast.StringLiteral); ok {
+		if symbolStr.Value == "quote" {
+			argsValue, ok := kvPairs["args"]
+			if !ok {
+				return newError("quote command requires args key: %s", keyValueObj)
+			}
+			return quote(argsValue, env)
 		}
-		return quote(argsValue, env)
-	}
 
-	symbol := Eval(symbolValue, env)
-	if isError(symbol) {
-		return symbol
+		symbol = evalSymbol(symbolStr, env)
+		if isError(symbol) {
+			return symbol
+		}
+	} else {
+		symbol = Eval(symbolValue, env)
+		if isError(symbol) {
+			return symbol
+		}
 	}
 
 	argsValue, ok := kvPairs["args"]
@@ -264,9 +275,12 @@ func evalSetExpression(exp ast.Expression, env *object.Environment) object.Objec
 	if !ok {
 		return newError("var key not found in set: %s", keyValueObj)
 	}
-	variable, ok := varValue.(*ast.Symbol)
+	variable, ok := varValue.(*ast.StringLiteral)
 	if !ok {
 		return newError("var key must be SYMBOL, got %s", varValue)
+	}
+	if !strings.HasPrefix(variable.Value, "$") {
+		return newError("var key must not start with $: %s", variable.Value)
 	}
 
 	valueValue, ok := kvPairs["val"]
@@ -311,9 +325,12 @@ func evalFromUntilLoop(keyValueObj *ast.KeyValueObject, env *object.Environment)
 	if !ok {
 		return newError("for key not found in loop: %s", keyValueObj)
 	}
-	loopSymbol, ok := forValue.(*ast.Symbol)
+	loopSymbol, ok := forValue.(*ast.StringLiteral)
 	if !ok {
-		return newError("for key must be SYMBOL, got %s", forValue)
+		return newError("for key must be String, got %s", forValue)
+	}
+	if !strings.HasPrefix(loopSymbol.Value, "$") {
+		return newError("for key must not start with $: %s", loopSymbol.Value)
 	}
 
 	fromValue, ok := kvPairs["from"]
@@ -370,9 +387,12 @@ func evalInLoop(keyValueObj *ast.KeyValueObject, env *object.Environment) object
 	if !ok {
 		return newError("for key not found in loop: %s", keyValueObj)
 	}
-	loopSymbol, ok := forValue.(*ast.Symbol)
+	loopSymbol, ok := forValue.(*ast.StringLiteral)
 	if !ok {
-		return newError("for key must be SYMBOL, got %s", forValue)
+		return newError("for key must be String, got %s", forValue)
+	}
+	if !strings.HasPrefix(loopSymbol.Value, "$") {
+		return newError("for key must not start with $: %s", loopSymbol.Value)
 	}
 
 	doValue, ok := kvPairs["do"]
@@ -406,9 +426,12 @@ func evalInLoop(keyValueObj *ast.KeyValueObject, env *object.Environment) object
 		return result
 	}
 
-	symbol, ok := inValue.(*ast.Symbol)
+	symbol, ok := inValue.(*ast.StringLiteral)
 	if !ok {
 		return newError("in key must be ARRAY or SYMBOL, got %s", inValue)
+	}
+	if !strings.HasPrefix(symbol.Value, "$") {
+		return newError("in key must not start with $: %s", symbol.Value)
 	}
 
 	evaluatedInSymbol := Eval(symbol, env)
@@ -441,21 +464,27 @@ func evalLambdaExpression(exp ast.Expression, env *object.Environment) object.Ob
 	}
 	kvPairs := keyValueObj.KVPairs()
 
-	params := make([]*ast.Symbol, 0)
+	params := make([]*ast.StringLiteral, 0)
 	paramsValue, ok := kvPairs["params"]
 	if ok {
 		if paramsArray, ok := paramsValue.(*ast.Array); ok {
 			for _, param := range paramsArray.Elements {
-				paramSymbol, ok := param.(*ast.Symbol)
+				paramSymbol, ok := param.(*ast.StringLiteral)
 				if !ok {
 					return newError("params key must be ARRAY of SYMBOL, got %s", param)
+				}
+				if !strings.HasPrefix(paramSymbol.Value, "$") {
+					return newError("params key must not start with $: %s", paramSymbol.Value)
 				}
 				params = append(params, paramSymbol)
 			}
 		} else {
-			paramsSymbol, ok := paramsValue.(*ast.Symbol)
+			paramsSymbol, ok := paramsValue.(*ast.StringLiteral)
 			if !ok {
 				return newError("params key must be ARRAY or SYMBOL, got %s", paramsValue)
+			}
+			if !strings.HasPrefix(paramsSymbol.Value, "$") {
+				return newError("params key must not start with $: %s", paramsSymbol.Value)
 			}
 			params = append(params, paramsSymbol)
 		}

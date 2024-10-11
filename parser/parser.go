@@ -98,6 +98,11 @@ func (p *Parser) parseObject() (ast.Object, error) {
 	}
 	p.nextToken()
 
+	if p.curTokenIs(token.RBRACE) {
+		p.nextToken()
+		return object, nil
+	}
+
 	// parse key value pairs
 	for {
 		kvPair, err := p.parseKeyValuePair()
@@ -226,16 +231,7 @@ func (p *Parser) parseDoubleQuotedString() (ast.Expression, error) {
 		return nil, err
 	}
 
-	var res ast.Expression
-
-	if token.IsBuiltinSymbol(p.curToken.Literal) ||
-		token.IsSymbol(p.curToken.Literal) ||
-		token.IsQuoteUnquoteSymbol(p.curToken.Literal) {
-		trimmedStr := strings.TrimSpace(p.curToken.Literal)
-		res = &ast.Symbol{Token: p.curToken, Value: trimmedStr}
-	} else {
-		res = &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}
-	}
+	res := &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}
 	p.nextToken()
 
 	if err := p.expectCurToken(token.DOUBLE_QUOTE); err != nil {

@@ -2,6 +2,7 @@ package evaluator
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/JunNishimura/jsop/ast"
 	"github.com/JunNishimura/jsop/object"
@@ -9,61 +10,84 @@ import (
 )
 
 func quote(exp ast.Expression, env *object.Environment) object.Object {
-	unquotedExp := evalUnquoteCommand(exp, env)
+	unquotedExp := evalUnquote(exp, env)
 	return &object.Quote{Expression: unquotedExp}
 }
 
-func evalUnquoteCommand(quoted ast.Expression, env *object.Environment) ast.Expression {
+func evalUnquote(quoted ast.Expression, env *object.Environment) ast.Expression {
 	return ast.Modify(quoted, func(exp ast.Expression) ast.Expression {
-		if !isUnquoteCommand(exp) {
+		if !isUnquote(exp) {
 			return exp
 		}
 
-		kvObject, ok := exp.(*ast.KeyValueObject)
-		if !ok {
-			return exp
+		switch exp := exp.(type) {
+		case *ast.KeyValueObject:
+			return evalUnquoteCommand(exp, env)
+		case *ast.StringLiteral:
+			return evalUnquoteString(exp, env)
 		}
 
-		commandValue, ok := kvObject.KVPairs()["command"]
-		if !ok {
-			return exp
-		}
-		commandObject, ok := commandValue.(*ast.KeyValueObject)
-		if !ok {
-			return exp
-		}
-
-		argsValue, ok := commandObject.KVPairs()["args"]
-		if !ok {
-			return exp
-		}
-
-		unquoted := Eval(argsValue, env)
-		return convertObjectToExpression(unquoted)
+		return exp
 	})
 }
 
+func evalUnquoteCommand(kvObj *ast.KeyValueObject, env *object.Environment) ast.Expression {
+	cmdVal, ok := kvObj.KVPairs()["command"]
+	if !ok {
+		return kvObj
+	}
+	cmdObj, ok := cmdVal.(*ast.KeyValueObject)
+	if !ok {
+		return kvObj
+	}
+
+	argsVal, ok := cmdObj.KVPairs()["args"]
+	if !ok {
+		return kvObj
+	}
+
+	unquoted := Eval(argsVal, env)
+	return convertObjectToExpression(unquoted)
+}
+
+func evalUnquoteString(strLit *ast.StringLiteral, env *object.Environment) ast.Expression {
+	if obj, isFound := env.Get(strLit.Value[1:]); isFound {
+		return convertObjectToExpression(obj)
+	}
+	return strLit
+}
+
+func isUnquote(exp ast.Expression) bool {
+	switch exp := exp.(type) {
+	case *ast.KeyValueObject:
+		return isUnquoteCommand(exp)
+	case *ast.StringLiteral:
+		return strings.HasPrefix(exp.Value, ",")
+	}
+
+	return false
+}
+
 func isUnquoteCommand(exp ast.Expression) bool {
-	kvObject, ok := exp.(*ast.KeyValueObject)
+	kvObj, ok := exp.(*ast.KeyValueObject)
 	if !ok {
 		return false
 	}
 
-	commandValue, ok := kvObject.KVPairs()["command"]
+	cmdVal, ok := kvObj.KVPairs()["command"]
 	if !ok {
 		return false
 	}
-	commandObject, ok := commandValue.(*ast.KeyValueObject)
-	if !ok {
-		return false
-	}
-
-	symbol, ok := commandObject.KVPairs()["symbol"]
+	cmdObj, ok := cmdVal.(*ast.KeyValueObject)
 	if !ok {
 		return false
 	}
 
-	symbolStr, ok := symbol.(*ast.Symbol)
+	symbolVal, ok := cmdObj.KVPairs()["symbol"]
+	if !ok {
+		return false
+	}
+	symbolStr, ok := symbolVal.(*ast.StringLiteral)
 	if !ok {
 		return false
 	}
