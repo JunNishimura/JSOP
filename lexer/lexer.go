@@ -48,6 +48,14 @@ func (l *Lexer) NextToken() token.Token {
 	case ':':
 		tok = newToken(token.COLON, l.curChar)
 	case ',':
+		if isLetter(l.peekChar()) {
+			l.readChar()
+			literal := "," + l.readStringWithoutSpace()
+			return token.Token{
+				Type:    token.STRING,
+				Literal: literal,
+			}
+		}
 		tok = newToken(token.COMMA, l.curChar)
 	case '-':
 		if l.peekChar() == '"' {
@@ -127,6 +135,14 @@ func (l *Lexer) readNumber() string {
 func (l *Lexer) readString() string {
 	startPos := l.curPos
 	for isLetter(l.curChar) || isSpecialChar(l.curChar) || isWhitespace(l.curChar) {
+		l.readChar()
+	}
+	return l.input[startPos:l.curPos]
+}
+
+func (l *Lexer) readStringWithoutSpace() string {
+	startPos := l.curPos
+	for isLetter(l.curChar) || isSpecialChar(l.curChar) {
 		l.readChar()
 	}
 	return l.input[startPos:l.curPos]
