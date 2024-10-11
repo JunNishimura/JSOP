@@ -164,7 +164,7 @@ func extendMacroEnv(macro *object.Macro, kv map[string]*object.Quote) *object.En
 }
 
 func isMacroCall(kvObj *ast.KeyValueObject, env *object.Environment) (string, bool) {
-	for key, _ := range kvObj.KVPairs() {
+	for key := range kvObj.KVPairs() {
 		obj, ok := env.Get(key)
 		if !ok {
 			continue
