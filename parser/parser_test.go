@@ -274,7 +274,7 @@ func TestCommand(t *testing.T) {
 										Token: token.Token{Type: token.STRING, Literal: "symbol"},
 										Value: "symbol",
 									},
-									Value: &ast.Symbol{
+									Value: &ast.StringLiteral{
 										Token: token.Token{Type: token.STRING, Literal: "+"},
 										Value: "+",
 									},
@@ -329,7 +329,7 @@ func TestCommand(t *testing.T) {
 										Token: token.Token{Type: token.STRING, Literal: "symbol"},
 										Value: "symbol",
 									},
-									Value: &ast.Symbol{
+									Value: &ast.StringLiteral{
 										Token: token.Token{Type: token.STRING, Literal: "-"},
 										Value: "-",
 									},
@@ -384,7 +384,7 @@ func TestCommand(t *testing.T) {
 										Token: token.Token{Type: token.STRING, Literal: "symbol"},
 										Value: "symbol",
 									},
-									Value: &ast.Symbol{
+									Value: &ast.StringLiteral{
 										Token: token.Token{Type: token.STRING, Literal: "*"},
 										Value: "*",
 									},
@@ -439,7 +439,7 @@ func TestCommand(t *testing.T) {
 										Token: token.Token{Type: token.STRING, Literal: "symbol"},
 										Value: "symbol",
 									},
-									Value: &ast.Symbol{
+									Value: &ast.StringLiteral{
 										Token: token.Token{Type: token.STRING, Literal: "/"},
 										Value: "/",
 									},
@@ -494,7 +494,7 @@ func TestCommand(t *testing.T) {
 										Token: token.Token{Type: token.STRING, Literal: "symbol"},
 										Value: "symbol",
 									},
-									Value: &ast.Symbol{
+									Value: &ast.StringLiteral{
 										Token: token.Token{Type: token.STRING, Literal: "=="},
 										Value: "==",
 									},
@@ -549,7 +549,7 @@ func TestCommand(t *testing.T) {
 										Token: token.Token{Type: token.STRING, Literal: "symbol"},
 										Value: "symbol",
 									},
-									Value: &ast.Symbol{
+									Value: &ast.StringLiteral{
 										Token: token.Token{Type: token.STRING, Literal: "!="},
 										Value: "!=",
 									},
@@ -604,7 +604,7 @@ func TestCommand(t *testing.T) {
 										Token: token.Token{Type: token.STRING, Literal: "symbol"},
 										Value: "symbol",
 									},
-									Value: &ast.Symbol{
+									Value: &ast.StringLiteral{
 										Token: token.Token{Type: token.STRING, Literal: "!"},
 										Value: "!",
 									},
@@ -649,7 +649,7 @@ func TestCommand(t *testing.T) {
 										Token: token.Token{Type: token.STRING, Literal: "symbol"},
 										Value: "symbol",
 									},
-									Value: &ast.Symbol{
+									Value: &ast.StringLiteral{
 										Token: token.Token{Type: token.STRING, Literal: "$hoge"},
 										Value: "$hoge",
 									},
@@ -685,7 +685,7 @@ func TestCommand(t *testing.T) {
 										Token: token.Token{Type: token.STRING, Literal: "symbol"},
 										Value: "symbol",
 									},
-									Value: &ast.Symbol{
+									Value: &ast.StringLiteral{
 										Token: token.Token{Type: token.STRING, Literal: "$hoge"},
 										Value: "$hoge",
 									},
@@ -731,7 +731,7 @@ func TestCommand(t *testing.T) {
 										Token: token.Token{Type: token.STRING, Literal: "symbol"},
 										Value: "symbol",
 									},
-									Value: &ast.Symbol{
+									Value: &ast.StringLiteral{
 										Token: token.Token{Type: token.STRING, Literal: "at"},
 										Value: "at",
 									},
@@ -744,7 +744,7 @@ func TestCommand(t *testing.T) {
 									Value: &ast.Array{
 										Token: token.Token{Type: token.LBRACKET, Literal: "["},
 										Elements: []ast.Expression{
-											&ast.Symbol{
+											&ast.StringLiteral{
 												Token: token.Token{Type: token.STRING, Literal: "$hoge"},
 												Value: "$hoge",
 											},
@@ -797,7 +797,7 @@ func TestCommand(t *testing.T) {
 										Token: token.Token{Type: token.STRING, Literal: "symbol"},
 										Value: "symbol",
 									},
-									Value: &ast.Symbol{
+									Value: &ast.StringLiteral{
 										Token: token.Token{Type: token.STRING, Literal: "+"},
 										Value: "+",
 									},
@@ -1016,7 +1016,7 @@ func TestIfExpression(t *testing.T) {
 																Token: token.Token{Type: token.STRING, Literal: "symbol"},
 																Value: "symbol",
 															},
-															Value: &ast.Symbol{
+															Value: &ast.StringLiteral{
 																Token: token.Token{Type: token.STRING, Literal: "=="},
 																Value: "==",
 															},
@@ -1067,7 +1067,7 @@ func TestIfExpression(t *testing.T) {
 																Token: token.Token{Type: token.STRING, Literal: "symbol"},
 																Value: "symbol",
 															},
-															Value: &ast.Symbol{
+															Value: &ast.StringLiteral{
 																Token: token.Token{Type: token.STRING, Literal: "+"},
 																Value: "+",
 															},
@@ -1118,7 +1118,7 @@ func TestIfExpression(t *testing.T) {
 																Token: token.Token{Type: token.STRING, Literal: "symbol"},
 																Value: "symbol",
 															},
-															Value: &ast.Symbol{
+															Value: &ast.StringLiteral{
 																Token: token.Token{Type: token.STRING, Literal: "*"},
 																Value: "*",
 															},
@@ -1215,7 +1215,7 @@ func TestLoopExpression(t *testing.T) {
 										Token: token.Token{Type: token.STRING, Literal: "for"},
 										Value: "for",
 									},
-									Value: &ast.Symbol{
+									Value: &ast.StringLiteral{
 										Token: token.Token{Type: token.STRING, Literal: "$i"},
 										Value: "$i",
 									},
@@ -1261,7 +1261,7 @@ func TestLoopExpression(t *testing.T) {
 																Token: token.Token{Type: token.STRING, Literal: "symbol"},
 																Value: "symbol",
 															},
-															Value: &ast.Symbol{
+															Value: &ast.StringLiteral{
 																Token: token.Token{Type: token.STRING, Literal: "+"},
 																Value: "+",
 															},
@@ -1274,7 +1274,7 @@ func TestLoopExpression(t *testing.T) {
 															Value: &ast.Array{
 																Token: token.Token{Type: token.LBRACKET, Literal: "["},
 																Elements: []ast.Expression{
-																	&ast.Symbol{
+																	&ast.StringLiteral{
 																		Token: token.Token{Type: token.STRING, Literal: "$i"},
 																		Value: "$i",
 																	},
@@ -1339,7 +1339,7 @@ func TestLoopExpression(t *testing.T) {
 												Token: token.Token{Type: token.STRING, Literal: "var"},
 												Value: "var",
 											},
-											Value: &ast.Symbol{
+											Value: &ast.StringLiteral{
 												Token: token.Token{Type: token.STRING, Literal: "$arr"},
 												Value: "$arr",
 											},
@@ -1388,7 +1388,7 @@ func TestLoopExpression(t *testing.T) {
 												Token: token.Token{Type: token.STRING, Literal: "for"},
 												Value: "for",
 											},
-											Value: &ast.Symbol{
+											Value: &ast.StringLiteral{
 												Token: token.Token{Type: token.STRING, Literal: "$element"},
 												Value: "$element",
 											},
@@ -1398,7 +1398,7 @@ func TestLoopExpression(t *testing.T) {
 												Token: token.Token{Type: token.STRING, Literal: "in"},
 												Value: "in",
 											},
-											Value: &ast.Symbol{
+											Value: &ast.StringLiteral{
 												Token: token.Token{Type: token.STRING, Literal: "$arr"},
 												Value: "$arr",
 											},
@@ -1424,7 +1424,7 @@ func TestLoopExpression(t *testing.T) {
 																		Token: token.Token{Type: token.STRING, Literal: "symbol"},
 																		Value: "symbol",
 																	},
-																	Value: &ast.Symbol{
+																	Value: &ast.StringLiteral{
 																		Token: token.Token{Type: token.STRING, Literal: "print"},
 																		Value: "print",
 																	},
@@ -1434,7 +1434,7 @@ func TestLoopExpression(t *testing.T) {
 																		Token: token.Token{Type: token.STRING, Literal: "args"},
 																		Value: "args",
 																	},
-																	Value: &ast.Symbol{
+																	Value: &ast.StringLiteral{
 																		Token: token.Token{Type: token.STRING, Literal: "$element"},
 																		Value: "$element",
 																	},
@@ -1503,7 +1503,7 @@ func TestSetExpression(t *testing.T) {
 										Token: token.Token{Type: token.STRING, Literal: "var"},
 										Value: "var",
 									},
-									Value: &ast.Symbol{
+									Value: &ast.StringLiteral{
 										Token: token.Token{Type: token.STRING, Literal: "$x"},
 										Value: "$x",
 									},
@@ -1554,7 +1554,7 @@ func TestSetExpression(t *testing.T) {
 										Token: token.Token{Type: token.STRING, Literal: "var"},
 										Value: "var",
 									},
-									Value: &ast.Symbol{
+									Value: &ast.StringLiteral{
 										Token: token.Token{Type: token.STRING, Literal: "$x"},
 										Value: "$x",
 									},
@@ -1580,7 +1580,7 @@ func TestSetExpression(t *testing.T) {
 																Token: token.Token{Type: token.STRING, Literal: "symbol"},
 																Value: "symbol",
 															},
-															Value: &ast.Symbol{
+															Value: &ast.StringLiteral{
 																Token: token.Token{Type: token.STRING, Literal: "+"},
 																Value: "+",
 															},
@@ -1710,7 +1710,7 @@ func TestLambdaExpression(t *testing.T) {
 										Token: token.Token{Type: token.STRING, Literal: "params"},
 										Value: "params",
 									},
-									Value: &ast.Symbol{
+									Value: &ast.StringLiteral{
 										Token: token.Token{Type: token.STRING, Literal: "$x"},
 										Value: "$x",
 									},
@@ -1736,7 +1736,7 @@ func TestLambdaExpression(t *testing.T) {
 																Token: token.Token{Type: token.STRING, Literal: "symbol"},
 																Value: "symbol",
 															},
-															Value: &ast.Symbol{
+															Value: &ast.StringLiteral{
 																Token: token.Token{Type: token.STRING, Literal: "+"},
 																Value: "+",
 															},
@@ -1749,7 +1749,7 @@ func TestLambdaExpression(t *testing.T) {
 															Value: &ast.Array{
 																Token: token.Token{Type: token.LBRACKET, Literal: "["},
 																Elements: []ast.Expression{
-																	&ast.Symbol{
+																	&ast.StringLiteral{
 																		Token: token.Token{Type: token.STRING, Literal: "$x"},
 																		Value: "$x",
 																	},
@@ -1805,11 +1805,11 @@ func TestLambdaExpression(t *testing.T) {
 									Value: &ast.Array{
 										Token: token.Token{Type: token.LBRACKET, Literal: "["},
 										Elements: []ast.Expression{
-											&ast.Symbol{
+											&ast.StringLiteral{
 												Token: token.Token{Type: token.STRING, Literal: "$x"},
 												Value: "$x",
 											},
-											&ast.Symbol{
+											&ast.StringLiteral{
 												Token: token.Token{Type: token.STRING, Literal: "$y"},
 												Value: "$y",
 											},
@@ -1837,7 +1837,7 @@ func TestLambdaExpression(t *testing.T) {
 																Token: token.Token{Type: token.STRING, Literal: "symbol"},
 																Value: "symbol",
 															},
-															Value: &ast.Symbol{
+															Value: &ast.StringLiteral{
 																Token: token.Token{Type: token.STRING, Literal: "+"},
 																Value: "+",
 															},
@@ -1850,11 +1850,11 @@ func TestLambdaExpression(t *testing.T) {
 															Value: &ast.Array{
 																Token: token.Token{Type: token.LBRACKET, Literal: "["},
 																Elements: []ast.Expression{
-																	&ast.Symbol{
+																	&ast.StringLiteral{
 																		Token: token.Token{Type: token.STRING, Literal: "$x"},
 																		Value: "$x",
 																	},
-																	&ast.Symbol{
+																	&ast.StringLiteral{
 																		Token: token.Token{Type: token.STRING, Literal: "$y"},
 																		Value: "$y",
 																	},
@@ -1961,7 +1961,7 @@ func TestPrograms(t *testing.T) {
 												Token: token.Token{Type: token.STRING, Literal: "symbol"},
 												Value: "symbol",
 											},
-											Value: &ast.Symbol{
+											Value: &ast.StringLiteral{
 												Token: token.Token{Type: token.STRING, Literal: "+"},
 												Value: "+",
 											},
@@ -2061,7 +2061,7 @@ func TestPrograms(t *testing.T) {
 												Token: token.Token{Type: token.STRING, Literal: "var"},
 												Value: "var",
 											},
-											Value: &ast.Symbol{
+											Value: &ast.StringLiteral{
 												Token: token.Token{Type: token.STRING, Literal: "$x"},
 												Value: "$x",
 											},
@@ -2081,7 +2081,7 @@ func TestPrograms(t *testing.T) {
 							},
 						},
 					},
-					&ast.Symbol{
+					&ast.StringLiteral{
 						Token: token.Token{Type: token.STRING, Literal: "$x"},
 						Value: "$x",
 					},

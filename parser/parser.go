@@ -231,16 +231,8 @@ func (p *Parser) parseDoubleQuotedString() (ast.Expression, error) {
 		return nil, err
 	}
 
-	var res ast.Expression
-
-	if token.IsBuiltinSymbol(p.curToken.Literal) ||
-		token.IsSymbol(p.curToken.Literal) ||
-		token.IsQuoteUnquoteSymbol(p.curToken.Literal) {
-		trimmedStr := strings.TrimSpace(p.curToken.Literal)
-		res = &ast.Symbol{Token: p.curToken, Value: trimmedStr}
-	} else {
-		res = &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}
-	}
+	trimmed := strings.TrimSpace(p.curToken.Literal)
+	res := &ast.StringLiteral{Token: p.curToken, Value: trimmed}
 	p.nextToken()
 
 	if err := p.expectCurToken(token.DOUBLE_QUOTE); err != nil {
