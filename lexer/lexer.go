@@ -50,7 +50,7 @@ func (l *Lexer) NextToken() token.Token {
 	case ',':
 		if isLetter(l.peekChar()) {
 			l.readChar()
-			literal := "," + l.readStringWithoutSpace()
+			literal := "," + l.readString(isLetter, isSpecialChar)
 			return token.Token{
 				Type:    token.STRING,
 				Literal: literal,
@@ -72,7 +72,7 @@ func (l *Lexer) NextToken() token.Token {
 			tok.Literal = l.readNumber()
 			return tok
 		} else if isLetter(l.curChar) || isSpecialChar(l.curChar) {
-			readStr := l.readString()
+			readStr := l.readString(isLetter, isSpecialChar, isWhitespace)
 
 			trimmedStr := strings.TrimSpace(readStr)
 			if trimmedStr == "true" {
@@ -132,18 +132,17 @@ func (l *Lexer) readNumber() string {
 	return l.input[startPos:l.curPos]
 }
 
-func (l *Lexer) readString() string {
+func (l *Lexer) readString(filters ...func(byte) bool) string {
 	startPos := l.curPos
-	for isLetter(l.curChar) || isSpecialChar(l.curChar) || isWhitespace(l.curChar) {
-		l.readChar()
-	}
-	return l.input[startPos:l.curPos]
-}
-
-func (l *Lexer) readStringWithoutSpace() string {
-	startPos := l.curPos
-	for isLetter(l.curChar) || isSpecialChar(l.curChar) {
-		l.readChar()
+	for {
+	LOOP:
+		for _, filter := range filters {
+			if filter(l.curChar) {
+				l.readChar()
+				goto LOOP
+			}
+		}
+		break
 	}
 	return l.input[startPos:l.curPos]
 }
