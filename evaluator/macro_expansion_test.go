@@ -41,7 +41,9 @@ func TestDefineMacro(t *testing.T) {
 		t.Fatalf("parse error: %s", err)
 	}
 
-	_ = DefineMacros(exp, env)
+	if err := DefineMacros(exp, env); err != nil {
+		t.Fatalf("define macro error: %s", err)
+	}
 
 	obj, ok := env.Get("myMacro")
 	if !ok {
@@ -188,7 +190,9 @@ func TestExpandMacro(t *testing.T) {
 		}
 
 		env := object.NewEnvironment()
-		DefineMacros(program, env)
+		if err := DefineMacros(program, env); err != nil {
+			t.Fatalf("define macro error: %s", err)
+		}
 		expanded := ExpandMacros(program, env)
 
 		if expanded.String() != expected.String() {

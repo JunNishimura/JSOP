@@ -1,17 +1,21 @@
 package evaluator
 
 import (
+	"fmt"
+
 	"github.com/JunNishimura/jsop/ast"
 	"github.com/JunNishimura/jsop/object"
 )
 
-func DefineMacros(program ast.Expression, env *object.Environment) ast.Expression {
+func DefineMacros(program ast.Expression, env *object.Environment) error {
 	if arrayExp, ok := program.(*ast.Array); ok {
 		definitions := make([]int, 0)
 
 		for i, exp := range arrayExp.Elements {
-			if isMacroDefinition(exp) {
-				addMacro(exp, env)
+			if macro, ok := isMacroDefinition(exp); ok {
+				if err := addMacro(macro, env); err != nil {
+					return err
+				}
 				definitions = append(definitions, i)
 			}
 		}
@@ -23,128 +27,110 @@ func DefineMacros(program ast.Expression, env *object.Environment) ast.Expressio
 				arrayExp.Elements[definitionIndex+1:]...,
 			)
 		}
-
-		return arrayExp
 	}
 
-	if isMacroDefinition(program) {
-		addMacro(program, env)
+	if macro, ok := isMacroDefinition(program); ok {
+		if err := addMacro(macro, env); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func isMacroDefinition(exp ast.Expression) bool {
-	kvObject, ok := exp.(*ast.KeyValueObject)
+func isMacroDefinition(exp ast.Expression) (*ast.KeyValueObject, bool) {
+	kvObj, ok := exp.(*ast.KeyValueObject)
 	if !ok {
-		return false
+		return nil, false
 	}
 
-	_, ok = kvObject.KVPairs()["defmacro"]
-	return ok
+	defmacroVal, ok := kvObj.KVPairs()["defmacro"]
+	if !ok {
+		return nil, false
+	}
+	defmacro, ok := defmacroVal.(*ast.KeyValueObject)
+	if !ok {
+		return nil, false
+	}
+
+	return defmacro, true
 }
 
-func addMacro(exp ast.Expression, env *object.Environment) {
-	kvObject, ok := exp.(*ast.KeyValueObject)
-	if !ok {
-		return
-	}
+func addMacro(macro *ast.KeyValueObject, env *object.Environment) error {
+	kvPairs := macro.KVPairs()
 
-	defmacro, ok := kvObject.KVPairs()["defmacro"]
+	nameVal, ok := kvPairs["name"]
 	if !ok {
-		return
+		return fmt.Errorf("macro expects 'name' key")
 	}
-	defmacroValue, ok := defmacro.(*ast.KeyValueObject)
+	macroName, ok := nameVal.(*ast.StringLiteral)
 	if !ok {
-		return
-	}
-	kvPairs := defmacroValue.KVPairs()
-
-	nameValue, ok := kvPairs["name"]
-	if !ok {
-		return
-	}
-	macroName, ok := nameValue.(*ast.StringLiteral)
-	if !ok {
-		return
+		return fmt.Errorf("macro expects 'name' key to be StringLiteral, got %t", nameVal)
 	}
 
 	keys := make([]*ast.StringLiteral, 0)
 	keysValue, ok := kvPairs["keys"]
 	if ok {
-		if keysArray, ok := keysValue.(*ast.Array); ok {
-			for _, key := range keysArray.Elements {
+		switch keysValue := keysValue.(type) {
+		case *ast.Array:
+			for _, key := range keysValue.Elements {
 				strLiteral, ok := key.(*ast.StringLiteral)
 				if !ok {
-					return
+					return fmt.Errorf("macro expects 'keys' to be Array of StringLiterals")
 				}
 				keys = append(keys, strLiteral)
 			}
-		} else {
-			strLiteral, ok := keysValue.(*ast.StringLiteral)
-			if !ok {
-				return
-			}
-			keys = append(keys, strLiteral)
+		case *ast.StringLiteral:
+			keys = append(keys, keysValue)
+		default:
+			return fmt.Errorf("macro expects 'keys' to be Array or StringLiteral")
 		}
 	}
 
-	bodyValue, ok := kvPairs["body"]
+	bodyVal, ok := kvPairs["body"]
 	if !ok {
-		return
+		return fmt.Errorf("macro expects 'body' key")
 	}
 
 	macroObj := &object.Macro{
 		Keys: keys,
-		Body: bodyValue,
+		Body: bodyVal,
 		Env:  env,
 	}
-
 	env.Set(macroName.Value, macroObj)
+
+	return nil
 }
 
 func ExpandMacros(program ast.Expression, env *object.Environment) ast.Expression {
 	return ast.Modify(program, func(exp ast.Expression) ast.Expression {
-		kvObject, ok := exp.(*ast.KeyValueObject)
+		kvObj, ok := exp.(*ast.KeyValueObject)
 		if !ok {
 			return exp
 		}
 
-		macroName, ok := isMacroCall(kvObject, env)
-		if !ok {
-			return exp
-		}
-		macroObj, ok := env.Get(macroName)
-		if !ok {
-			return exp
-		}
-		macro, ok := macroObj.(*object.Macro)
+		macroName, macroObj, ok := isMacroCall(kvObj, env)
 		if !ok {
 			return exp
 		}
 
-		macroContentValue, ok := kvObject.KVPairs()[macroName]
+		body, ok := kvObj.KVPairs()[macroName]
 		if !ok {
 			return exp
 		}
-		macroContent, ok := macroContentValue.(*ast.KeyValueObject)
+		bodyObj, ok := body.(*ast.KeyValueObject)
 		if !ok {
 			return exp
 		}
-		macroContentKV := macroContent.KVPairs()
 
-		newKV := map[string]*object.Quote{}
-		for _, key := range macro.Keys {
-			keyValue, ok := macroContentKV[key.Value]
-			if !ok {
-				return exp
-			}
-			newKV[key.Value] = &object.Quote{Expression: keyValue}
+		quotedKeys, ok := quoteKeys(macroObj, bodyObj)
+		if !ok {
+			return exp
 		}
 
-		macroEnv := extendMacroEnv(macro, newKV)
+		macroEnv := extendMacroEnv(macroObj, quotedKeys)
 
-		evaluated := Eval(macro.Body, macroEnv)
+		evaluated := Eval(macroObj.Body, macroEnv)
 
 		quote, ok := evaluated.(*object.Quote)
 		if !ok {
@@ -155,28 +141,43 @@ func ExpandMacros(program ast.Expression, env *object.Environment) ast.Expressio
 	})
 }
 
-func extendMacroEnv(macro *object.Macro, kv map[string]*object.Quote) *object.Environment {
+func quoteKeys(macroObj *object.Macro, body *ast.KeyValueObject) (map[string]*object.Quote, bool) {
+	quotedKeys := make(map[string]*object.Quote)
+
+	kvPairs := body.KVPairs()
+	for _, key := range macroObj.Keys {
+		value, ok := kvPairs[key.Value]
+		if !ok {
+			return nil, false
+		}
+		quotedKeys[key.Value] = &object.Quote{Expression: value}
+	}
+
+	return quotedKeys, true
+}
+
+func extendMacroEnv(macro *object.Macro, quotedKeys map[string]*object.Quote) *object.Environment {
 	extended := object.NewEnclosedEnvironment(macro.Env)
 	for _, key := range macro.Keys {
-		extended.Set(key.Value, kv[key.Value])
+		extended.Set(key.Value, quotedKeys[key.Value])
 	}
 	return extended
 }
 
-func isMacroCall(kvObj *ast.KeyValueObject, env *object.Environment) (string, bool) {
+func isMacroCall(kvObj *ast.KeyValueObject, env *object.Environment) (string, *object.Macro, bool) {
 	for key := range kvObj.KVPairs() {
-		obj, ok := env.Get(key)
+		keyObj, ok := env.Get(key)
 		if !ok {
 			continue
 		}
 
-		_, ok = obj.(*object.Macro)
+		macroObj, ok := keyObj.(*object.Macro)
 		if !ok {
 			continue
 		}
 
-		return key, true
+		return key, macroObj, true
 	}
 
-	return "", false
+	return "", nil, false
 }
