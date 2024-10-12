@@ -121,7 +121,8 @@ func isSpecialChar(ch byte) bool {
 		ch == '<' ||
 		ch == '>' ||
 		ch == '!' ||
-		ch == '$'
+		ch == '$' ||
+		ch == ','
 }
 
 func (l *Lexer) readNumber() string {
