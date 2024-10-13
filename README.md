@@ -25,7 +25,7 @@ brew install JunNishimura/tap/JSOP
 
 ### go intall
 ```
-go install github.com/JunNishimura/JSOP@latest
+go install github.com/JunNishimura/jsop@latest
 ```
 
 ## 📖 Language Specification
