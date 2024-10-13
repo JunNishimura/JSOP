@@ -17,6 +17,17 @@
 }
 ```
 
+## 💻 Installation
+### Homebrew Tap
+```
+brew install JunNishimura/tap/JSOP
+```
+
+### go intall
+```
+go install github.com/JunNishimura/JSOP@latest
+```
+
 ## 📖 Language Specification
 1. Everything is an expression.
 2. Only `.jsop` and `.jsop.json` are accepted as file extensions.
