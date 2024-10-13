@@ -72,16 +72,22 @@ func (l *Lexer) NextToken() token.Token {
 			tok.Literal = l.readNumber()
 			return tok
 		} else if isLetter(l.curChar) || isSpecialChar(l.curChar) {
-			readStr := l.readString(isLetter, isSpecialChar, isWhitespace)
+			if l.lookBackChar() == '"' {
+				return token.Token{
+					Type:    token.STRING,
+					Literal: l.readQuotedString(),
+				}
+			}
 
-			trimmedStr := strings.TrimSpace(readStr)
+			strLiteral := l.readString(isLetter, isSpecialChar, isWhitespace)
+			trimmedStr := strings.TrimSpace(strLiteral)
 			if trimmedStr == "true" {
 				return token.Token{Type: token.TRUE, Literal: trimmedStr}
 			} else if trimmedStr == "false" {
 				return token.Token{Type: token.FALSE, Literal: trimmedStr}
 			}
 
-			return token.Token{Type: token.STRING, Literal: readStr}
+			return token.Token{Type: token.ILLEGAL, Literal: strLiteral}
 		}
 		tok = newToken(token.ILLEGAL, l.curChar)
 	}
@@ -147,9 +153,30 @@ func (l *Lexer) readString(filters ...func(byte) bool) string {
 	return l.input[startPos:l.curPos]
 }
 
+func (l *Lexer) readQuotedString() string {
+	var strLiteral string
+
+	for l.curChar != '"' {
+		strLiteral += l.readString(isLetter, isSpecialChar, isWhitespace)
+		if l.curChar == ',' {
+			strLiteral += ","
+			l.readChar()
+		}
+	}
+
+	return strLiteral
+}
+
 func (l *Lexer) peekChar() byte {
 	if l.nextPos >= len(l.input) {
 		return 0
 	}
 	return l.input[l.nextPos]
+}
+
+func (l *Lexer) lookBackChar() byte {
+	if l.curPos == 0 {
+		return 0
+	}
+	return l.input[l.curPos-1]
 }
