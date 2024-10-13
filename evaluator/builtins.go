@@ -253,7 +253,10 @@ var builtins = map[string]*object.Builtin{
 				return newError("argument to '!' must be BOOLEAN, got %s", args.Type())
 			}
 
-			return &object.Boolean{Value: !args.(*object.Boolean).Value}
+			if args == True {
+				return False
+			}
+			return True
 		},
 	},
 	"at": {
