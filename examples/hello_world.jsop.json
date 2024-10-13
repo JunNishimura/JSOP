@@ -1,0 +1,6 @@
+{
+    "command": {
+      "symbol": "print",
+      "args": "Hello, World!"
+    }
+}

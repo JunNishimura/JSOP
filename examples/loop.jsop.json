@@ -1,0 +1,13 @@
+{
+    "loop": {
+        "for": "$i",
+        "from": 0,
+        "until": 10,
+        "do": {
+            "command": {
+                "symbol": "print",
+                "args": "$i"
+            }
+        }
+    }
+}

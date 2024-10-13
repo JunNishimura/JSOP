@@ -1,0 +1,22 @@
+{
+    "if": {
+        "cond": {
+            "command": {
+                "symbol": "==",
+                "args": [1, 2]
+            }
+        },
+        "conseq": {
+            "command": {
+                "symbol": "+",
+                "args": [3, 4]
+            }
+        },
+        "alt": {
+            "command": {
+                "symbol": "*",
+                "args": [5, 6]
+            }
+        }
+    }
+}
