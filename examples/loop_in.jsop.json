@@ -1,0 +1,20 @@
+[
+    {
+        "set": {
+            "var": "$arr",
+            "val": [10, 20, 30]	
+        }
+    },
+    {
+        "loop": {
+            "for": "$element",
+            "in": "$arr",
+            "do": {
+                "command": {
+                    "symbol": "print",
+                    "args": "$element"
+                }
+            }
+        }
+    }
+]

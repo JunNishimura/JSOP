@@ -1,0 +1,17 @@
+{
+    "//": "this is a function to add two values",
+    "set": {
+        "var": "$add",
+        "val": {
+            "lambda": {
+                "params": ["$x", "$y"],
+                "body": {
+                    "command": {
+                        "symbol": "+",
+                        "args": ["$x", "$y"]
+                    }
+                }
+            }
+        }
+    }
+}

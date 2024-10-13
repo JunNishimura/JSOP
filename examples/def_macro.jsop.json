@@ -1,0 +1,42 @@
+[
+    {
+        "defmacro": {
+            "name": "unless",
+            "keys": ["cond", "conseq", "alt"],
+            "body": {
+                "command": {
+                    "symbol": "quote",
+                    "args": {
+                        "if": {
+                            "cond": {"command": {"symbol": "!", "args": ",cond"}},
+                            "conseq": ",conseq",
+                            "alt": ",alt"
+                        }
+                    }
+                } 
+            }
+        }
+    },
+    {
+        "unless": {
+            "cond": {
+                "command": {
+                    "symbol": ">",
+                    "args": [2, 1]
+                }
+            },
+            "conseq": {
+                "command": {
+                    "symbol": "print",
+                    "args": "not greater"
+                }
+            },
+            "alt": {
+                "command": {
+                    "symbol": "print",
+                    "args": "greater"
+                }
+            }
+        }
+    }
+]
