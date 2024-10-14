@@ -510,6 +510,120 @@ func TestSingleProgram(t *testing.T) {
 			},
 		},
 		{
+			name: "and expression",
+			input: `
+				{
+					"command": {
+						"symbol": "&&",
+						"args": [true, false]
+					}
+				}`,
+			expected: []token.Token{
+				{Type: token.LBRACE, Literal: "{"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.STRING, Literal: "command"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.LBRACE, Literal: "{"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.STRING, Literal: "symbol"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.STRING, Literal: "&&"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COMMA, Literal: ","},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.STRING, Literal: "args"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.LBRACKET, Literal: "["},
+				{Type: token.TRUE, Literal: "true"},
+				{Type: token.COMMA, Literal: ","},
+				{Type: token.FALSE, Literal: "false"},
+				{Type: token.RBRACKET, Literal: "]"},
+				{Type: token.RBRACE, Literal: "}"},
+				{Type: token.RBRACE, Literal: "}"},
+				{Type: token.EOF, Literal: ""},
+			},
+		},
+		{
+			name: "or expression",
+			input: `
+				{
+					"command": {
+						"symbol": "||",
+						"args": [true, false]
+					}
+				}`,
+			expected: []token.Token{
+				{Type: token.LBRACE, Literal: "{"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.STRING, Literal: "command"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.LBRACE, Literal: "{"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.STRING, Literal: "symbol"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.STRING, Literal: "||"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COMMA, Literal: ","},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.STRING, Literal: "args"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.LBRACKET, Literal: "["},
+				{Type: token.TRUE, Literal: "true"},
+				{Type: token.COMMA, Literal: ","},
+				{Type: token.FALSE, Literal: "false"},
+				{Type: token.RBRACKET, Literal: "]"},
+				{Type: token.RBRACE, Literal: "}"},
+				{Type: token.RBRACE, Literal: "}"},
+				{Type: token.EOF, Literal: ""},
+			},
+		},
+		{
+			name: "modulus expression",
+			input: `
+				{
+					"command": {
+						"symbol": "%",
+						"args": [1, 2]
+					}
+				}`,
+			expected: []token.Token{
+				{Type: token.LBRACE, Literal: "{"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.STRING, Literal: "command"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.LBRACE, Literal: "{"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.STRING, Literal: "symbol"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.STRING, Literal: "%"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COMMA, Literal: ","},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.STRING, Literal: "args"},
+				{Type: token.DOUBLE_QUOTE, Literal: "\""},
+				{Type: token.COLON, Literal: ":"},
+				{Type: token.LBRACKET, Literal: "["},
+				{Type: token.INT, Literal: "1"},
+				{Type: token.COMMA, Literal: ","},
+				{Type: token.INT, Literal: "2"},
+				{Type: token.RBRACKET, Literal: "]"},
+				{Type: token.RBRACE, Literal: "}"},
+				{Type: token.RBRACE, Literal: "}"},
+				{Type: token.EOF, Literal: ""},
+			},
+		},
+		{
 			name: "if expression",
 			input: `
 				{
