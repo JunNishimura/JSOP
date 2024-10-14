@@ -836,6 +836,40 @@ func TestArrayExpression(t *testing.T) {
 				]`,
 			expected: []any{[]any{10, 20, 30}, 3},
 		},
+		{
+			name: "embed an identifier in string",
+			input: `
+				[
+					{
+						"set": {
+							"var": "$x",
+							"val": 10
+						}
+					},
+					"{$x}: hello"
+				]`,
+			expected: []any{10, "10: hello"},
+		},
+		{
+			name: "embed identifiers in string",
+			input: `
+				[
+					{
+						"set": {
+							"var": "$x",
+							"val": 10
+						}
+					},
+					{
+						"set": {
+							"var": "$y",
+							"val": 20
+						}
+					},
+					"{$x}: hello, {$y}: world"
+				]`,
+			expected: []any{10, 20, "10: hello, 20: world"},
+		},
 	}
 
 	for _, tt := range tests {
