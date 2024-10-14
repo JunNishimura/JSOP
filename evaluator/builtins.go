@@ -138,7 +138,7 @@ var builtins = map[string]*object.Builtin{
 			}
 
 			for i := 0; i < len(arrayArg.Elements)-1; i++ {
-				if arrayArg.Elements[i] != arrayArg.Elements[i+1] {
+				if arrayArg.Elements[i].Inspect() != arrayArg.Elements[i+1].Inspect() {
 					return False
 				}
 			}
@@ -157,7 +157,7 @@ var builtins = map[string]*object.Builtin{
 			}
 
 			for i := 0; i < len(arrayArg.Elements)-1; i++ {
-				if arrayArg.Elements[i] != arrayArg.Elements[i+1] {
+				if arrayArg.Elements[i].Inspect() != arrayArg.Elements[i+1].Inspect() {
 					return True
 				}
 			}
