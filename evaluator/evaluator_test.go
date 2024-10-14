@@ -535,6 +535,72 @@ func TestLoopExpression(t *testing.T) {
 				]`,
 			expected: 60,
 		},
+		{
+			name: "break and continue in loop",
+			input: `
+				[
+					{
+						"set": {
+							"var": "$sum",
+							"val": 0
+						}
+					},
+					{
+						"loop": {
+							"for": "$i",
+							"from": 1,
+							"until": 15,
+							"do": {
+								"if": {
+									"cond": {
+										"command": {
+											"symbol": ">",
+											"args": ["$i", 10]
+										}
+									},
+									"conseq": {
+										"break": {}
+									},
+									"alt": {
+										"if": {
+											"cond": {
+												"command": {
+													"symbol": "==",
+													"args": [
+														{
+															"command": {
+																"symbol": "%",
+																"args": ["$i", 2]
+															}
+														},
+														0
+													]
+												}
+											},
+											"conseq": {
+												"set": {
+													"var": "$sum",
+													"val": {
+														"command": {
+															"symbol": "+",
+															"args": ["$sum", "$i"]
+														}
+													}
+												}
+											},
+											"alt": {
+												"continue": {}
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"$sum"
+				]`,
+			expected: 30,
+		},
 	}
 
 	for _, tt := range tests {
@@ -712,6 +778,66 @@ func TestLambdaExpression(t *testing.T) {
 					}
 				]`,
 			expected: 6,
+		},
+		{
+			name: "lambda expression with return statement",
+			input: `
+				[
+					{
+						"set": {
+							"var": "$f",
+							"val": {
+								"lambda": {
+									"body": [
+										{
+											"set": {
+												"var": "$sum",
+												"val": 0
+											}
+										},
+										{
+											"loop": {
+												"for": "$i",
+												"from": 1,
+												"until": 11,
+												"do": {
+													"if": {
+														"cond": {
+															"command": {
+																"symbol": ">",
+																"args": ["$i", 5]
+															}
+														},
+														"conseq": {
+															"return": "$sum"
+														},
+														"alt": {
+															"set": {
+																"var": "$sum",
+																"val": {
+																	"command": {
+																		"symbol": "+",
+																		"args": ["$sum", "$i"]
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									]
+								}
+							}
+						}
+					},
+					{
+						"command": {
+							"symbol": "$f"
+						}
+					}
+				]`,
+			expected: 15,
 		},
 	}
 
