@@ -15,7 +15,7 @@ var (
 	False = &object.Boolean{Value: false}
 )
 
-const identEmbedPattern = `\{\s*\w+\s*\}`
+const identEmbedPattern = `\{\s*\$\w+\s*\}`
 
 func Eval(exp ast.Expression, env *object.Environment) object.Object {
 	switch expt := exp.(type) {
@@ -524,9 +524,10 @@ func evalEmbeddedIdentifiers(strLiteral *ast.StringLiteral, env *object.Environm
 		evaluatedIdents = append(evaluatedIdents, ident)
 	}
 
+	newStrValue := strLiteral.Value
 	for i, match := range matches {
-		strLiteral.Value = strings.Replace(strLiteral.Value, match, evaluatedIdents[i].Inspect(), 1)
+		newStrValue = strings.Replace(newStrValue, match, evaluatedIdents[i].Inspect(), 1)
 	}
 
-	return &object.String{Value: strLiteral.Value}
+	return &object.String{Value: newStrValue}
 }
