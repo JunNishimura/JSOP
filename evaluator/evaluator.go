@@ -10,9 +10,11 @@ import (
 )
 
 var (
-	Null  = &object.Null{}
-	True  = &object.Boolean{Value: true}
-	False = &object.Boolean{Value: false}
+	Null     = &object.Null{}
+	Break    = &object.Break{}
+	Continue = &object.Continue{}
+	True     = &object.Boolean{Value: true}
+	False    = &object.Boolean{Value: false}
 )
 
 const identEmbedPattern = `\{\s*\$\w+\s*\}`
@@ -52,7 +54,7 @@ func Eval(exp ast.Expression, env *object.Environment) object.Object {
 	}
 }
 
-func evalArray(array *ast.Array, env *object.Environment) *object.Array {
+func evalArray(array *ast.Array, env *object.Environment) object.Object {
 	result := &object.Array{
 		Elements: []object.Object{},
 	}
@@ -61,6 +63,9 @@ func evalArray(array *ast.Array, env *object.Environment) *object.Array {
 		evaluated := Eval(el, env)
 		if isError(evaluated) {
 			return &object.Array{Elements: []object.Object{evaluated}}
+		}
+		if returnValue, ok := evaluated.(*object.ReturnValue); ok {
+			return returnValue
 		}
 		result.Elements = append(result.Elements, evaluated)
 	}
@@ -131,6 +136,16 @@ func evalKeyValueObject(kv *ast.KeyValueObject, env *object.Environment) object.
 			return evalLoopExpression(value, env)
 		case "lambda":
 			return evalLambdaExpression(value, env)
+		case "break":
+			return Break
+		case "continue":
+			return Continue
+		case "return":
+			evaluated := Eval(value, env)
+			if isError(evaluated) {
+				return evaluated
+			}
+			return &object.ReturnValue{Value: evaluated}
 		}
 	}
 
@@ -225,10 +240,20 @@ func applyFunction(function object.Object, args object.Object) object.Object {
 			return newError("failed to apply function: %s", err)
 		}
 
-		return Eval(funcType.Body, extendedEnv)
+		evaluated := Eval(funcType.Body, extendedEnv)
+		return unwrapReturnValue(evaluated)
 	default:
 		return newError("not a function: %s", function.Type())
 	}
+}
+
+func unwrapReturnValue(obj object.Object) object.Object {
+	if returnValue, ok := obj.(*object.ReturnValue); ok {
+		fmt.Println("returnValue.Value", returnValue.Value)
+		return returnValue.Value
+	}
+
+	return obj
 }
 
 func evalIfExpression(exp ast.Expression, env *object.Environment) object.Object {
@@ -384,6 +409,14 @@ func evalFromUntilLoop(keyValueObj *ast.KeyValueObject, env *object.Environment)
 			return evaluated
 		}
 
+		if evaluated == Break {
+			break
+		} else if evaluated == Continue {
+			continue
+		} else if returnValue, ok := evaluated.(*object.ReturnValue); ok {
+			return returnValue
+		}
+
 		result = evaluated
 	}
 
@@ -460,6 +493,14 @@ func evalInLoop(keyValueObj *ast.KeyValueObject, env *object.Environment) object
 		evaluated := Eval(doValue, extendedEnv)
 		if isError(evaluated) {
 			return evaluated
+		}
+
+		if evaluated == Break {
+			break
+		} else if evaluated == Continue {
+			continue
+		} else if returnValue, ok := evaluated.(*object.ReturnValue); ok {
+			return returnValue
 		}
 
 		result = evaluated
