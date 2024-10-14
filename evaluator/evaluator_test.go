@@ -102,6 +102,17 @@ func TestEvalIntegerExpression(t *testing.T) {
 			expected: 2,
 		},
 		{
+			name: "modulus",
+			input: `
+				{
+					"command": {
+						"symbol": "%",
+						"args": [5, 2]
+					}
+				}`,
+			expected: 1,
+		},
+		{
 			name: "single line comment",
 			input: `
 				{
@@ -303,6 +314,50 @@ func TestEvalBooleanExpression(t *testing.T) {
 					}
 				}`,
 			expected: true,
+		},
+		{
+			name: "logical AND: return true",
+			input: `
+				{
+					"command": {
+						"symbol": "&&",
+						"args": [true, true]
+					}
+				}`,
+			expected: true,
+		},
+		{
+			name: "logical AND: return false",
+			input: `
+				{
+					"command": {
+						"symbol": "&&",
+						"args": [true, false]
+					}
+				}`,
+			expected: false,
+		},
+		{
+			name: "logical OR: return true",
+			input: `
+				{
+					"command": {
+						"symbol": "||",
+						"args": [true, false]
+					}
+				}`,
+			expected: true,
+		},
+		{
+			name: "logical OR: return false",
+			input: `
+				{
+					"command": {
+						"symbol": "||",
+						"args": [false, false]
+					}
+				}`,
+			expected: false,
 		},
 	}
 
