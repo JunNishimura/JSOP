@@ -101,6 +101,32 @@ var builtins = map[string]*object.Builtin{
 			return &object.Integer{Value: result}
 		},
 	},
+	"%": {
+		Fn: func(args object.Object) object.Object {
+			arrayArg, ok := args.(*object.Array)
+			if !ok {
+				return newError("argument to `%%` must be ARRAY, got %s", args.Type())
+			}
+			if len(arrayArg.Elements) != 2 {
+				return newError("number of arguments to '%%' must be 2, got %d", len(arrayArg.Elements))
+			}
+
+			first, ok := arrayArg.Elements[0].(*object.Integer)
+			if !ok {
+				return newError("first argument to '%%' must be INTEGER, got %s", arrayArg.Elements[0].Type())
+			}
+			second, ok := arrayArg.Elements[1].(*object.Integer)
+			if !ok {
+				return newError("second argument to '%%' must be INTEGER, got %s", arrayArg.Elements[1].Type())
+			}
+
+			if second.Value == 0 {
+				return newError("division by zero")
+			}
+
+			return &object.Integer{Value: first.Value % second.Value}
+		},
+	},
 	"==": {
 		Fn: func(args object.Object) object.Object {
 			arrayArg, ok := args.(*object.Array)
@@ -218,6 +244,44 @@ var builtins = map[string]*object.Builtin{
 			}
 
 			return True
+		},
+	},
+	"&&": {
+		Fn: func(args object.Object) object.Object {
+			arrayArg, ok := args.(*object.Array)
+			if !ok {
+				return newError("argument to '&&' must be ARRAY, got %s", args.Type())
+			}
+			if len(arrayArg.Elements) <= 1 {
+				return newError("number of arguments to '&&' must be more than 1, got %d", len(arrayArg.Elements))
+			}
+
+			for _, arg := range arrayArg.Elements {
+				if arg != True {
+					return False
+				}
+			}
+
+			return True
+		},
+	},
+	"||": {
+		Fn: func(args object.Object) object.Object {
+			arrayArg, ok := args.(*object.Array)
+			if !ok {
+				return newError("argument to '||' must be ARRAY, got %s", args.Type())
+			}
+			if len(arrayArg.Elements) <= 1 {
+				return newError("number of arguments to '||' must be more than 1, got %d", len(arrayArg.Elements))
+			}
+
+			for _, arg := range arrayArg.Elements {
+				if arg == True {
+					return True
+				}
+			}
+
+			return False
 		},
 	},
 	"<=": {
