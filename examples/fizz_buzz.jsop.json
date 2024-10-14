@@ -1,0 +1,114 @@
+[
+    {
+        "set": {
+            "var": "$num",
+            "val": 31
+        }
+    },
+    {
+        "loop": {
+            "for": "$i",
+            "from": 1,
+            "until": "$num",
+            "do": {
+                "if": {
+                    "cond": {
+                        "command": {
+                            "symbol": "&&",
+                            "args": [
+                                {
+                                    "command": {
+                                        "symbol": "==",
+                                        "args": [
+                                            {
+                                                "command": {
+                                                    "symbol": "%",
+                                                    "args": ["$i", 3]
+                                                }
+                                            },
+                                            0
+                                        ]
+                                    }
+                                },
+                                {
+                                    "command": {
+                                        "symbol": "==",
+                                        "args": [
+                                            {
+                                                "command": {
+                                                    "symbol": "%",
+                                                    "args": ["$i", 5]
+                                                }
+                                            },
+                                            0
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "conseq": {
+                        "command": {
+                            "symbol": "print",
+                            "args": "{$i}: FizzBuzz"
+                        }
+                    },
+                    "alt": {
+                        "if": {
+                            "cond": {
+                                "command": {
+                                    "symbol": "==",
+                                    "args": [
+                                        {
+                                            "command": {
+                                                "symbol": "%",
+                                                "args": ["$i", 3]
+                                            }
+                                        },
+                                        0
+                                    ]
+                                }
+                            },
+                            "conseq": {
+                                "command": {
+                                    "symbol": "print",
+                                    "args": "{$i}: Fizz"
+                                }
+                            },
+                            "alt": {
+                                "if": {
+                                    "cond": {
+                                        "command": {
+                                            "symbol": "==",
+                                            "args": [
+                                                {
+                                                    "command": {
+                                                        "symbol": "%",
+                                                        "args": ["$i", 5]
+                                                    }
+                                                },
+                                                0
+                                            ]
+                                        }
+                                    },
+                                    "conseq": {
+                                        "command": {
+                                            "symbol": "print",
+                                            "args": "{$i}: Buzz"
+                                        }
+                                    },
+                                    "alt": {
+                                        "command": {
+                                            "symbol": "print",
+                                            "args": "$i"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+]

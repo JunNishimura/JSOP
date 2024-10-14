@@ -102,6 +102,17 @@ func TestEvalIntegerExpression(t *testing.T) {
 			expected: 2,
 		},
 		{
+			name: "modulus",
+			input: `
+				{
+					"command": {
+						"symbol": "%",
+						"args": [5, 2]
+					}
+				}`,
+			expected: 1,
+		},
+		{
 			name: "single line comment",
 			input: `
 				{
@@ -303,6 +314,50 @@ func TestEvalBooleanExpression(t *testing.T) {
 					}
 				}`,
 			expected: true,
+		},
+		{
+			name: "logical AND: return true",
+			input: `
+				{
+					"command": {
+						"symbol": "&&",
+						"args": [true, true]
+					}
+				}`,
+			expected: true,
+		},
+		{
+			name: "logical AND: return false",
+			input: `
+				{
+					"command": {
+						"symbol": "&&",
+						"args": [true, false]
+					}
+				}`,
+			expected: false,
+		},
+		{
+			name: "logical OR: return true",
+			input: `
+				{
+					"command": {
+						"symbol": "||",
+						"args": [true, false]
+					}
+				}`,
+			expected: true,
+		},
+		{
+			name: "logical OR: return false",
+			input: `
+				{
+					"command": {
+						"symbol": "||",
+						"args": [false, false]
+					}
+				}`,
+			expected: false,
 		},
 	}
 
@@ -780,6 +835,40 @@ func TestArrayExpression(t *testing.T) {
 					}
 				]`,
 			expected: []any{[]any{10, 20, 30}, 3},
+		},
+		{
+			name: "embed an identifier in string",
+			input: `
+				[
+					{
+						"set": {
+							"var": "$x",
+							"val": 10
+						}
+					},
+					"{$x}: hello"
+				]`,
+			expected: []any{10, "10: hello"},
+		},
+		{
+			name: "embed identifiers in string",
+			input: `
+				[
+					{
+						"set": {
+							"var": "$x",
+							"val": 10
+						}
+					},
+					{
+						"set": {
+							"var": "$y",
+							"val": 20
+						}
+					},
+					"{$x}: hello, {$y}: world"
+				]`,
+			expected: []any{10, 20, "10: hello, 20: world"},
 		},
 	}
 
