@@ -27,6 +27,24 @@ func (e *Environment) Get(name string) (Object, bool) {
 }
 
 func (e *Environment) Set(name string, val Object) Object {
+	// check if the variable already exists in the current environment
+	// current environment has higher priority than outer environment
+	if _, ok := e.store[name]; ok {
+		// if it does, update the value
+		e.store[name] = val
+		return val
+	}
+
+	// check if the variable exists in the outer environment
+	if e.outer != nil {
+		if _, ok := e.outer.Get(name); ok {
+			// if it does, update the value
+			e.outer.Set(name, val)
+			return val
+		}
+	}
+
+	// create a new variable in the current environment
 	e.store[name] = val
 	return val
 }
