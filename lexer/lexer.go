@@ -6,15 +6,24 @@ import (
 	"github.com/JunNishimura/jsop/token"
 )
 
+type StringReadState int
+
+const (
+	notString StringReadState = iota
+	readStart
+	readEnd
+)
+
 type Lexer struct {
-	input   string
-	curPos  int
-	nextPos int
-	curChar byte
+	input     string
+	curPos    int
+	nextPos   int
+	curChar   byte
+	strRState StringReadState
 }
 
 func New(input string) *Lexer {
-	l := &Lexer{input: input}
+	l := &Lexer{input: input, strRState: notString}
 	l.readChar()
 	return l
 }
@@ -32,6 +41,14 @@ func (l *Lexer) readChar() {
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
 
+	if l.strRState == readStart {
+		l.strRState = readEnd
+		return token.Token{
+			Type:    token.STRING,
+			Literal: l.readQuotedString(),
+		}
+	}
+
 	l.skipWhitespace()
 
 	switch l.curChar {
@@ -44,25 +61,19 @@ func (l *Lexer) NextToken() token.Token {
 	case ']':
 		tok = newToken(token.RBRACKET, l.curChar)
 	case '"':
+		switch l.strRState {
+		case notString:
+			l.strRState = readStart
+		case readEnd:
+			l.strRState = notString
+		}
 		tok = newToken(token.DOUBLE_QUOTE, l.curChar)
 	case ':':
 		tok = newToken(token.COLON, l.curChar)
 	case ',':
-		if isLetter(l.peekChar()) {
-			l.readChar()
-			literal := "," + l.readString(isLetter, isSpecialChar)
-			return token.Token{
-				Type:    token.STRING,
-				Literal: literal,
-			}
-		}
 		tok = newToken(token.COMMA, l.curChar)
 	case '-':
-		if l.peekChar() == '"' {
-			tok = newToken(token.STRING, l.curChar)
-		} else {
-			tok = newToken(token.MINUS, l.curChar)
-		}
+		tok = newToken(token.MINUS, l.curChar)
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
@@ -71,15 +82,8 @@ func (l *Lexer) NextToken() token.Token {
 			tok.Type = token.INT
 			tok.Literal = l.readNumber()
 			return tok
-		} else if isLetter(l.curChar) || isSpecialChar(l.curChar) {
-			if l.lookBackChar() == '"' {
-				return token.Token{
-					Type:    token.STRING,
-					Literal: l.readQuotedString(),
-				}
-			}
-
-			strLiteral := l.readString(isLetter, isSpecialChar, isWhitespace)
+		} else if isLetter(l.curChar) {
+			strLiteral := l.readString(isLetter)
 			trimmedStr := strings.TrimSpace(strLiteral)
 			if trimmedStr == "true" {
 				return token.Token{Type: token.TRUE, Literal: trimmedStr}
@@ -87,7 +91,7 @@ func (l *Lexer) NextToken() token.Token {
 				return token.Token{Type: token.FALSE, Literal: trimmedStr}
 			}
 
-			return token.Token{Type: token.ILLEGAL, Literal: strLiteral}
+			return token.Token{Type: token.STRING, Literal: strLiteral}
 		}
 		tok = newToken(token.ILLEGAL, l.curChar)
 	}
@@ -118,18 +122,6 @@ func isLetter(ch byte) bool {
 	return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z'
 }
 
-func isSpecialChar(ch byte) bool {
-	return ch == '=' ||
-		ch == '+' ||
-		ch == '-' ||
-		ch == '*' ||
-		ch == '/' ||
-		ch == '<' ||
-		ch == '>' ||
-		ch == '!' ||
-		ch == '$'
-}
-
 func (l *Lexer) readNumber() string {
 	startPos := l.curPos
 	for isDigit(l.curChar) {
@@ -154,29 +146,11 @@ func (l *Lexer) readString(filters ...func(byte) bool) string {
 }
 
 func (l *Lexer) readQuotedString() string {
-	var strLiteral string
+	startPos := l.curPos
 
-	for l.curChar != '"' {
-		strLiteral += l.readString(isLetter, isSpecialChar, isWhitespace)
-		if l.curChar == ',' {
-			strLiteral += ","
-			l.readChar()
-		}
+	for l.curChar != '"' && l.curChar != 0 {
+		l.readChar()
 	}
 
-	return strLiteral
-}
-
-func (l *Lexer) peekChar() byte {
-	if l.nextPos >= len(l.input) {
-		return 0
-	}
-	return l.input[l.nextPos]
-}
-
-func (l *Lexer) lookBackChar() byte {
-	if l.curPos == 0 {
-		return 0
-	}
-	return l.input[l.curPos-1]
+	return l.input[startPos:l.curPos]
 }
