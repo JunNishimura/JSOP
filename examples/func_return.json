@@ -1,0 +1,55 @@
+[
+    {
+        "set": {
+            "var": "$f",
+            "val": {
+                "lambda": {
+                    "body": [
+                        {
+                            "set": {
+                                "var": "$sum",
+                                "val": 0
+                            }
+                        },
+                        {
+                            "loop": {
+                                "for": "$i",
+                                "from": 1,
+                                "until": 11,
+                                "do": {
+                                    "if": {
+                                        "cond": {
+                                            "command": {
+                                                "symbol": ">",
+                                                "args": ["$i", 5]
+                                            }
+                                        },
+                                        "conseq": {
+                                            "return": "$sum"
+                                        },
+                                        "alt": {
+                                            "set": {
+                                                "var": "$sum",
+                                                "val": {
+                                                    "command": {
+                                                        "symbol": "+",
+                                                        "args": ["$sum", "$i"]
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    {
+        "command": {
+            "symbol": "$f"
+        }
+    }
+]

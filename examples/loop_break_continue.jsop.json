@@ -1,0 +1,61 @@
+[
+    {
+        "set": {
+            "var": "$sum",
+            "val": 0
+        }
+    },
+    {
+        "loop": {
+            "for": "$i",
+            "from": 1,
+            "until": 15,
+            "do": {
+                "if": {
+                    "cond": {
+                        "command": {
+                            "symbol": ">",
+                            "args": ["$i", 10]
+                        }
+                    },
+                    "conseq": {
+                        "break": {}
+                    },
+                    "alt": {
+                        "if": {
+                            "cond": {
+                                "command": {
+                                    "symbol": "==",
+                                    "args": [
+                                        {
+                                            "command": {
+                                                "symbol": "%",
+                                                "args": ["$i", 2]
+                                            }
+                                        },
+                                        0
+                                    ]
+                                }
+                            },
+                            "conseq": {
+                                "set": {
+                                    "var": "$sum",
+                                    "val": {
+                                        "command": {
+                                            "symbol": "+",
+                                            "args": ["$sum", "$i"]
+                                        }
+                                    }
+                                }
+                            },
+                            "alt": {
+                                "continue": {}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "$sum"
+]
