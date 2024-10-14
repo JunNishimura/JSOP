@@ -8,16 +8,19 @@ import (
 )
 
 const (
-	ERROR_OBJ    = "ERROR"
-	INTEGER_OBJ  = "INTEGER"
-	STRING_OBJ   = "STRING"
-	BOOLEAN_OBJ  = "BOOLEAN"
-	ARRAY_OBJ    = "ARRAY"
-	NULL_OBJ     = "NULL"
-	FUNCTION_OBJ = "FUNCTION"
-	BUILTIN_OBJ  = "BUILTIN"
-	QUOTE_OBJ    = "QUOTE"
-	MACRO_OBJ    = "MACRO"
+	ERROR_OBJ        = "ERROR"
+	INTEGER_OBJ      = "INTEGER"
+	STRING_OBJ       = "STRING"
+	BOOLEAN_OBJ      = "BOOLEAN"
+	ARRAY_OBJ        = "ARRAY"
+	NULL_OBJ         = "NULL"
+	RETURN_VALUE_OBJ = "RETURN_VALUE"
+	BREAK_OBJ        = "BREAK"
+	CONTINUE_OBJ     = "CONTINUE"
+	FUNCTION_OBJ     = "FUNCTION"
+	BUILTIN_OBJ      = "BUILTIN"
+	QUOTE_OBJ        = "QUOTE"
+	MACRO_OBJ        = "MACRO"
 )
 
 type ObjectType string
@@ -72,6 +75,23 @@ type Null struct{}
 
 func (n *Null) Type() ObjectType { return NULL_OBJ }
 func (n *Null) Inspect() string  { return "null" }
+
+type Break struct{}
+
+func (b *Break) Type() ObjectType { return BREAK_OBJ }
+func (b *Break) Inspect() string  { return "break" }
+
+type Continue struct{}
+
+func (c *Continue) Type() ObjectType { return CONTINUE_OBJ }
+func (c *Continue) Inspect() string  { return "continue" }
+
+type ReturnValue struct {
+	Value Object
+}
+
+func (rv *ReturnValue) Type() ObjectType { return RETURN_VALUE_OBJ }
+func (rv *ReturnValue) Inspect() string  { return rv.Value.Inspect() }
 
 type Error struct {
 	Message string
