@@ -2,6 +2,7 @@ package evaluator
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/JunNishimura/jsop/ast"
@@ -14,6 +15,8 @@ var (
 	False = &object.Boolean{Value: false}
 )
 
+const identEmbedPattern = `\{\s*\w+\s*\}`
+
 func Eval(exp ast.Expression, env *object.Environment) object.Object {
 	switch expt := exp.(type) {
 	case *ast.Array:
@@ -25,7 +28,15 @@ func Eval(exp ast.Expression, env *object.Environment) object.Object {
 			return evalSymbol(expt, env)
 		}
 
-		return &object.String{Value: expt.Value}
+		re := regexp.MustCompile(identEmbedPattern)
+		matches := re.FindAllString(expt.Value, -1)
+
+		if len(matches) == 0 {
+			return &object.String{Value: expt.Value}
+		}
+
+		// expand embedded identifiers
+		return evalEmbeddedIdentifiers(expt, env, matches)
 	case *ast.Boolean:
 		return nativeBoolToBooleanObject(expt.Value)
 	case *ast.PrefixAtom:
@@ -500,4 +511,22 @@ func evalLambdaExpression(exp ast.Expression, env *object.Environment) object.Ob
 		Body:       body,
 		Env:        env,
 	}
+}
+
+func evalEmbeddedIdentifiers(strLiteral *ast.StringLiteral, env *object.Environment, matches []string) object.Object {
+	evaluatedIdents := make([]object.Object, 0)
+	for _, match := range matches {
+		identName := strings.TrimSpace(strings.Trim(match, "{}")) // remove leading/trailing spaces and {}
+		ident, isFound := env.Get(identName)
+		if !isFound {
+			return newError("identifier not found: %s", identName)
+		}
+		evaluatedIdents = append(evaluatedIdents, ident)
+	}
+
+	for i, match := range matches {
+		strLiteral.Value = strings.Replace(strLiteral.Value, match, evaluatedIdents[i].Inspect(), 1)
+	}
+
+	return &object.String{Value: strLiteral.Value}
 }
