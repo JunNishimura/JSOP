@@ -1,6 +1,7 @@
-<h1 align='center'>
-  JSOP <br/>JSON based programming language
-</h1>
+<div align='center'>
+  <h1>JSOP</h1>
+  <h3>JSON based programming language</h3>
+</div>
 
 <p align='center'>
   <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/JunNishimura/JSOP">
@@ -34,36 +35,52 @@ go install github.com/JunNishimura/jsop@latest
 
 ### Integer
 Integer value is a sequence of numbers.
+<details><summary>Example</summary>
+
 ```json
 123
 ```
+</details>
 
 ### String
 String value is a sequence of letters, symbols, and spaces enclosed in double quotation marks.
+<details><summary>Example</summary>
+
 ```json
-"this is string"
+"this is a string"
 ```
+</details>
 
 ### Boolean
 Boolean value is either `true` or `false`.
+<details><summary>Example</summary>
+
 ```json
 true
 ```
+</details>
 
 ### Array
 Arrays are composed of expressions.
+<details><summary>Example</summary>
+
 ```json
 [1, "string", true]
 ```
+</details>
 
 ### Identifiers
 Strings beginning with the `$` symbol are considered as identifiers.
+<details><summary>Example</summary>
+  
 ```json
 "$x"
 ```
+</details>
 
 ### Assignment
 To assign a value or function to an identifier, use the `set` key. Specify the `var` key for the name of the identifier and the `val` key for the value to be assigned.
+<details><summary>Example</summary>
 
 ```json
 [
@@ -76,10 +93,13 @@ To assign a value or function to an identifier, use the `set` key. Specify the `
     "$x"
 ]
 ```
+</details>
 
 ### Function
 #### Function Definition
 Functions can be defined by using `set` key and `lambda` expression`.
+<details><summary>Example</summary>
+
 ```json
 {
     "set": {
@@ -98,9 +118,12 @@ Functions can be defined by using `set` key and `lambda` expression`.
     }
 }
 ```
+</details>
 
 #### Function Call
 Functions can be called by using `command` key.
+<details><summary>Example</summary>
+
 ```json
 {
     "command": {
@@ -109,6 +132,7 @@ Functions can be called by using `command` key.
     }
 }
 ```
+</details>
 
 ### Builtin Functions
 Builtin functions are as follows,
@@ -116,19 +140,24 @@ Builtin functions are as follows,
 2. `-`: subtract
 3. `*`: multiply
 4. `/`: divide
-5. `==`: equal
-6. `!=`: not equal
-7. `<`: less than
-8. `<=`: less than euqal
-9. `>`: greater than
-10. `>=`: greater than euqal
-11. `!`: negate
-12. `print`: print the arguments to the terminal
-13. `len`: length of the array
-14. `at`: pick up the element of the array
+5. `%`: modulo
+6. `&&`: and
+7. `||`: or
+8. `==`: equal
+9. `!=`: not equal
+10. `<`: less than
+11. `<=`: less than euqal
+12. `>`: greater than
+13. `>=`: greater than euqal
+14. `!`: negate
+15. `print`: print the arguments to the terminal
+16. `len`: length of the array
+17. `at`: pick up the element of the array
 
 ### If
-Conditional branches can be implemented by using the `if` key.
+Conditional branches can be implemented by using the `if` key. The `alt` key is optional.
+<details><summary>Example</summary>
+
 ```json
 {
     "if": {
@@ -153,9 +182,12 @@ Conditional branches can be implemented by using the `if` key.
     }
 }
 ```
+</details>
 
 ### Loop
 Iterations are handled by using the `loop` key.
+<details><summary>Example</summary>
+
 ```json
 {
     "loop": {
@@ -171,6 +203,9 @@ Iterations are handled by using the `loop` key.
     }
 }
 ```
+</details>
+
+<details><summary>Example</summary>
 
 ```json
 [
@@ -194,9 +229,12 @@ Iterations are handled by using the `loop` key.
     }
 ]
 ```
+</details>
 
 ### Macro
 Macro can be defined by using `defmacro` key.
+<details><summary>Example</summary>
+
 ```json
 {
     "defmacro": {
@@ -222,10 +260,12 @@ Macro can be defined by using `defmacro` key.
     }
 }
 ```
-
+</details>
 
 ### Comment
 Comments can be inesrted by using `//` key.
+<details><summary>Example</summary>
+
 ```json
 {
     "//": "this is a function to add two values",
@@ -245,6 +285,7 @@ Comments can be inesrted by using `//` key.
     }
 }
 ```
+</details>
 
 ## Issues
 
