@@ -1,0 +1,42 @@
+[
+    {
+        "defmacro": {
+            "name": "defun",
+            "keys": ["name", "params", "body"],
+            "body": {
+                "command": {
+                    "symbol": "quote",
+                    "args": {
+                        "set": {
+                            "var": ",name",
+                            "val": {
+                                "lambda": {
+                                    "params": ",params",
+                                    "body": ",body"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    {
+        "defun": {
+            "name": "$add",
+            "params": ["$x", "$y"],
+            "body": {
+                "command": {
+                    "symbol": "+",
+                    "args": ["$x", "$y"]
+                }
+            }
+        }
+    },
+    {
+        "command": {
+            "symbol": "$add",
+            "args": [1, 2]
+        }
+    }
+]
