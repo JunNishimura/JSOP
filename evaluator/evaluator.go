@@ -249,7 +249,6 @@ func applyFunction(function object.Object, args object.Object) object.Object {
 
 func unwrapReturnValue(obj object.Object) object.Object {
 	if returnValue, ok := obj.(*object.ReturnValue); ok {
-		fmt.Println("returnValue.Value", returnValue.Value)
 		return returnValue.Value
 	}
 
