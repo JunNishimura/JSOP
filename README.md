@@ -444,7 +444,7 @@ You can also call the `quote` symbol for quoting, and unquote by adding backquot
 ```
 </details>
 
-Defining function can be much simple if you use Macro.
+Defining function can be much simpler if you use Macro.
 <details open><summary>Example</summary>
 
 ```json
