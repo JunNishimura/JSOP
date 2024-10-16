@@ -1,6 +1,6 @@
 <div align='center'>
   <h1>JSOP</h1>
-  <h3>JSON based programming language</h3>
+  <h3>write program in JSON</h3>
 </div>
 
 <p align='center'>
@@ -441,6 +441,55 @@ You can also call the `quote` symbol for quoting, and unquote by adding backquot
         }
     }
 }
+```
+</details>
+
+Defining function can be much simpler if you use Macro.
+<details open><summary>Example</summary>
+
+```json
+[
+    {
+        "defmacro": {
+            "name": "defun",
+            "keys": ["name", "params", "body"],
+            "body": {
+                "command": {
+                    "symbol": "quote",
+                    "args": {
+                        "set": {
+                            "var": ",name",
+                            "val": {
+                                "lambda": {
+                                    "params": ",params",
+                                    "body": ",body"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    {
+        "defun": {
+            "name": "$add",
+            "params": ["$x", "$y"],
+            "body": {
+                "command": {
+                    "symbol": "+",
+                    "args": ["$x", "$y"]
+                }
+            }
+        }
+    },
+    {
+        "command": {
+            "symbol": "$add",
+            "args": [1, 2]
+        }
+    }
+]
 ```
 </details>
 
